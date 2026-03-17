@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Compras 2025 — Grupo Restauración</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --azul:    #1F3864;
+    --azul2:   #2E75B6;
+    --naranja: #ED7D31;
+    --verde:   #70AD47;
+    --rojo:    #E05252;
+    --amarillo:#FFC000;
+    --morado:  #7030A0;
+    --gris:    #F4F6F9;
+    --gris2:   #E8EDF3;
+    --blanco:  #FFFFFF;
+    --texto:   #1A1A2E;
+    --sombra:  0 2px 12px rgba(31,56,100,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--gris);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul2) 100%);
+    color: white;
+    padding: 18px 28px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 3px 16px rgba(31,56,100,0.25);
+  }
+  .header-left h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.3px; }
+  .header-left p  { font-size: 0.82rem; opacity: 0.82; margin-top: 2px; }
+  .header-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  /* ── FILTROS ── */
+  .filters-bar {
+    background: var(--blanco);
+    padding: 14px 28px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--gris2);
+    box-shadow: var(--sombra);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 180px;
+  }
+  .filter-group label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--azul);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .filter-group select {
+    padding: 7px 10px;
+    border: 1.5px solid var(--gris2);
+    border-radius: 8px;
+    font-size: 0.83rem;
+    color: var(--texto);
+    background: var(--gris);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .filter-group select:focus { border-color: var(--azul2); }
+  .btn-reset {
+    margin-top: 18px;
+    padding: 8px 18px;
+    background: var(--naranja);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-reset:hover { background: #c9621a; transform: translateY(-1px); }
+  .filter-info {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: #666;
+    background: var(--gris2);
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .filter-info span { font-weight: 700; color: var(--azul); }
+
+  /* ── KPIs ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    padding: 18px 28px 0;
+  }
+  .kpi-card {
+    background: var(--blanco);
+    border-radius: 12px;
+    padding: 16px 14px;
+    box-shadow: var(--sombra);
+    border-top: 4px solid var(--azul2);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,56,100,0.15); }
+  .kpi-card:nth-child(1) { border-color: var(--azul); }
+  .kpi-card:nth-child(2) { border-color: var(--azul2); }
+  .kpi-card:nth-child(3) { border-color: var(--naranja); }
+  .kpi-card:nth-child(4) { border-color: var(--verde); }
+  .kpi-card:nth-child(5) { border-color: var(--morado); }
+  .kpi-card:nth-child(6) { border-color: var(--rojo); }
+  .kpi-label {
+    font-size: 0.67rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--azul);
+    line-height: 1.1;
+  }
+  .kpi-sub {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 3px;
+  }
+
+  /* ── GRID DE GRÁFICOS ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    padding: 18px 28px;
+  }
+  .chart-card {
+    background: var(--blanco);
+    border-radius: 12px;
+    padding: 18px 20px 14px;
+    box-shadow: var(--sombra);
+    transition: box-shadow 0.2s;
+  }
+  .chart-card:hover { box-shadow: 0 6px 24px rgba(31,56,100,0.14); }
+  .chart-card.full-width { grid-column: 1 / -1; }
+  .chart-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--gris2);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .chart-title .icon { font-size: 1rem; }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall  { height: 340px; }
+  .chart-wrap.short { height: 220px; }
+
+  /* ── TABLA TOP ── */
+  .table-wrap {
+    overflow-x: auto;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  table.data-table thead th {
+    background: var(--azul);
+    color: white;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    white-space: nowrap;
+  }
+  table.data-table tbody tr:nth-child(even) { background: var(--gris); }
+  table.data-table tbody tr:hover { background: var(--gris2); }
+  table.data-table tbody td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gris2);
+    white-space: nowrap;
+  }
+  .badge-riesgo {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: white;
+  }
+  .badge-alto   { background: var(--rojo); }
+  .badge-medio  { background: var(--amarillo); color: #333; }
+  .badge-bajo   { background: var(--verde); }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 14px;
+    font-size: 0.72rem;
+    color: #aaa;
+    border-top: 1px solid var(--gris2);
+    margin-top: 8px;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--azul);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    gap: 18px;
+  }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 5px solid rgba(255,255,255,0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { font-size: 1rem; opacity: 0.85; }
+
+  @media (max-width: 900px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .chart-card.full-width { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Cargando datos de compras 2025…</p>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>📊 Dashboard de Compras 2025</h1>
+    <p>Grupo Restauración · Análisis interactivo en tiempo real</p>
+  </div>
+  <div class="header-badge">Enero – Diciembre 2025</div>
+</div>
+
+<!-- FILTROS -->
+<div class="filters-bar">
+  <div class="filter-group">
+    <label>🏠 Restaurante</label>
+    <select id="f-restaurante" onchange="applyFilters()">
+      <option value="">Todos los restaurantes</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>📦 Proveedor</label>
+    <select id="f-proveedor" onchange="applyFilters()">
+      <option value="">Todos los proveedores</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>🐟 Producto</label>
+    <select id="f-producto" onchange="applyFilters()">
+      <option value="">Todos los productos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>📅 Mes</label>
+    <select id="f-mes" onchange="applyFilters()">
+      <option value="">Todos los meses</option>
+    </select>
+  </div>
+  <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+  <div class="filter-info">Mostrando <span id="count-lines">—</span> líneas · <span id="count-eur">—</span></div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Gasto Total</div>
+    <div class="kpi-value" id="kpi-gasto">—</div>
+    <div class="kpi-sub">importe en €</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Restaurantes</div>
+    <div class="kpi-value" id="kpi-rest">—</div>
+    <div class="kpi-sub">centros activos</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Proveedores</div>
+    <div class="kpi-value" id="kpi-prov">—</div>
+    <div class="kpi-sub">proveedores activos</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Productos</div>
+    <div class="kpi-value" id="kpi-prod">—</div>
+    <div class="kpi-sub">referencias distintas</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Ticket Medio</div>
+    <div class="kpi-value" id="kpi-ticket">—</div>
+    <div class="kpi-sub">€ por albarán</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Mes Pico</div>
+    <div class="kpi-value" id="kpi-pico">—</div>
+    <div class="kpi-sub">mayor gasto mensual</div>
+  </div>
+</div>
+
+<!-- GRÁFICOS -->
+<div class="charts-grid">
+
+  <!-- Fila 1: Evolución mensual (full width) -->
+  <div class="chart-card full-width">
+    <div class="chart-title"><span class="icon">📈</span> Evolución Mensual del Gasto (€)</div>
+    <div class="chart-wrap"><canvas id="chart-mensual"></canvas></div>
+  </div>
+
+  <!-- Fila 2: Restaurantes + Proveedores -->
+  <div class="chart-card">
+    <div class="chart-title"><span class="icon">🏠</span> Gasto por Restaurante</div>
+    <div class="chart-wrap tall"><canvas id="chart-restaurantes"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title"><span class="icon">📦</span> Concentración de Proveedores (Pareto)</div>
+    <div class="chart-wrap tall"><canvas id="chart-proveedores"></canvas></div>
+  </div>
+
+  <!-- Fila 3: Top productos + Marisco vs Pescado -->
+  <div class="chart-card">
+    <div class="chart-title"><span class="icon">🥇</span> Top 10 Productos por Gasto</div>
+    <div class="chart-wrap tall"><canvas id="chart-productos"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title"><span class="icon">🦐</span> Marisco vs Pescado — Evolución Mensual</div>
+    <div class="chart-wrap tall"><canvas id="chart-subtipo"></canvas></div>
+  </div>
+
+  <!-- Fila 4: Tabla de riesgo proveedores (full width) -->
+  <div class="chart-card full-width">
+    <div class="chart-title"><span class="icon">⚠️</span> Análisis de Riesgo por Proveedor</div>
+    <div class="table-wrap">
+      <table class="data-table" id="tabla-riesgo">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Proveedor</th>
+            <th>Gasto €</th>
+            <th>% s/Total</th>
+            <th>% Acumulado</th>
+            <th>Nº Restaurantes</th>
+            <th>Nº Productos</th>
+            <th>Riesgo</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-riesgo-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Dashboard de Compras 2025 · Grupo Restauración · Datos actualizados automáticamente al cambiar los filtros
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATOS Y ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════════
+let ALL_DATA = [];
+let FILTERED = [];
+
+const MESES_ORDEN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_NUM   = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',
+                     7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'};
+
+const PALETA = [
+  '#1F3864','#2E75B6','#ED7D31','#70AD47','#FFC000',
+  '#FF6B6B','#7030A0','#00B0F0','#C55A11','#92D050',
+  '#4472C4','#538135','#9E480E','#833C00','#375623',
+  '#A9D18E','#BDD7EE','#DBDBDB','#7F7F7F','#FF0000'
+];
+
+// Instancias de Chart.js
+const charts = {};
+
+// ═══════════════════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════════════════
+function fmtEur(v) {
+  if (v >= 1_000_000) return (v/1_000_000).toFixed(1) + 'M €';
+  if (v >= 1_000)     return (v/1_000).toFixed(1) + 'K €';
+  return v.toFixed(0) + ' €';
+}
+function fmtEurFull(v) {
+  return new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR', maximumFractionDigits:0}).format(v);
+}
+function groupBy(arr, key) {
+  return arr.reduce((acc, row) => {
+    const k = row[key] || '(Sin datos)';
+    acc[k] = (acc[k] || 0) + row.TOTAL_LINEA;
+    return acc;
+  }, {});
+}
+function groupByCount(arr, key) {
+  return arr.reduce((acc, row) => {
+    const k = row[key] || '(Sin datos)';
+    if (!acc[k]) acc[k] = new Set();
+    return acc;
+  }, {});
+}
+function sortDesc(obj) {
+  return Object.entries(obj).sort((a,b) => b[1]-a[1]);
+}
+function sortAsc(obj) {
+  return Object.entries(obj).sort((a,b) => a[1]-b[1]);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INICIALIZAR SELECTORES
+// ═══════════════════════════════════════════════════════════
+function populateSelects() {
+  const restaurantes = [...new Set(ALL_DATA.map(r => r.RESTAURANTE))].sort();
+  const proveedores  = [...new Set(ALL_DATA.map(r => r.PROVEEDOR))].sort();
+  const productos    = [...new Set(ALL_DATA.map(r => r.PRODUCTO))].sort();
+  const meses        = [...new Set(ALL_DATA.map(r => r.MES_NUM))].sort((a,b)=>a-b);
+
+  const sel = (id, items) => {
+    const el = document.getElementById(id);
+    items.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      el.appendChild(opt);
+    });
+  };
+
+  sel('f-restaurante', restaurantes);
+  sel('f-proveedor',   proveedores);
+  sel('f-producto',    productos);
+  meses.forEach(m => {
+    const el = document.getElementById('f-mes');
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = MESES_NUM[m];
+    el.appendChild(opt);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILTRADO
+// ═══════════════════════════════════════════════════════════
+function applyFilters() {
+  const rest = document.getElementById('f-restaurante').value;
+  const prov = document.getElementById('f-proveedor').value;
+  const prod = document.getElementById('f-producto').value;
+  const mes  = document.getElementById('f-mes').value;
+
+  FILTERED = ALL_DATA.filter(r =>
+    (!rest || r.RESTAURANTE === rest) &&
+    (!prov || r.PROVEEDOR   === prov) &&
+    (!prod || r.PRODUCTO     === prod) &&
+    (!mes  || r.MES_NUM == mes)
+  );
+
+  updateAll();
+}
+
+function resetFilters() {
+  ['f-restaurante','f-proveedor','f-producto','f-mes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  FILTERED = [...ALL_DATA];
+  updateAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTUALIZAR TODO
+// ═══════════════════════════════════════════════════════════
+function updateAll() {
+  updateKPIs();
+  updateMensual();
+  updateRestaurantes();
+  updateProveedores();
+  updateProductos();
+  updateSubtipo();
+  updateTablaRiesgo();
+}
+
+// ═══════════════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════════════
+function updateKPIs() {
+  const total = FILTERED.reduce((s,r) => s + r.TOTAL_LINEA, 0);
+  const rests = new Set(FILTERED.map(r => r.RESTAURANTE)).size;
+  const provs = new Set(FILTERED.map(r => r.PROVEEDOR)).size;
+  const prods = new Set(FILTERED.map(r => r.PRODUCTO)).size;
+
+  // Ticket medio por albarán
+  const albaranMap = {};
+  FILTERED.forEach(r => {
+    albaranMap[r.REF_ALBARAN] = (albaranMap[r.REF_ALBARAN]||0) + r.TOTAL_LINEA;
+  });
+  const tickets = Object.values(albaranMap);
+  const ticketMedio = tickets.length ? tickets.reduce((s,v)=>s+v,0)/tickets.length : 0;
+
+  // Mes pico
+  const mesSums = {};
+  FILTERED.forEach(r => {
+    const m = MESES_NUM[r.MES_NUM] || r.MES_NOMBRE;
+    mesSums[m] = (mesSums[m]||0) + r.TOTAL_LINEA;
+  });
+  const picoEntry = Object.entries(mesSums).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('kpi-gasto').textContent  = fmtEur(total);
+  document.getElementById('kpi-rest').textContent   = rests;
+  document.getElementById('kpi-prov').textContent   = provs;
+  document.getElementById('kpi-prod').textContent   = prods;
+  document.getElementById('kpi-ticket').textContent = fmtEur(ticketMedio);
+  document.getElementById('kpi-pico').textContent   = picoEntry ? `${picoEntry[0]} · ${fmtEur(picoEntry[1])}` : '—';
+
+  document.getElementById('count-lines').textContent = FILTERED.length.toLocaleString('es-ES');
+  document.getElementById('count-eur').textContent   = fmtEurFull(total);
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO: EVOLUCIÓN MENSUAL
+// ═══════════════════════════════════════════════════════════
+function updateMensual() {
+  const sums = {};
+  MESES_ORDEN.forEach(m => sums[m] = 0);
+  FILTERED.forEach(r => {
+    const m = MESES_NUM[r.MES_NUM] || r.MES_NOMBRE;
+    if (m) sums[m] = (sums[m]||0) + r.TOTAL_LINEA;
+  });
+  const vals = MESES_ORDEN.map(m => sums[m] || 0);
+
+  if (charts.mensual) charts.mensual.destroy();
+  const ctx = document.getElementById('chart-mensual').getContext('2d');
+  charts.mensual = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MESES_ORDEN,
+      datasets: [{
+        label: 'Gasto mensual (€)',
+        data: vals,
+        backgroundColor: vals.map(v => v === Math.max(...vals) ? '#ED7D31' : '#2E75B6'),
+        borderRadius: 6,
+        borderSkipped: false,
+      }, {
+        type: 'line',
+        label: 'Tendencia',
+        data: vals,
+        borderColor: '#1F3864',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#ED7D31',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.35,
+        fill: false,
+        yAxisID: 'y',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          display: (ctx) => ctx.datasetIndex === 0,
+          anchor: 'end', align: 'top',
+          formatter: v => v > 0 ? fmtEur(v) : '',
+          font: { size: 9, weight: 'bold' },
+          color: '#1F3864',
+        }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => fmtEur(v), font: { size: 10 } },
+          grid: { color: '#F0F0F0' },
+        },
+        x: { grid: { display: false } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO: RESTAURANTES
+// ═══════════════════════════════════════════════════════════
+function updateRestaurantes() {
+  const data = sortDesc(groupBy(FILTERED, 'RESTAURANTE'));
+  const total = data.reduce((s,[,v])=>s+v,0);
+  const labels = data.map(([k])=>k);
+  const vals   = data.map(([,v])=>v);
+
+  if (charts.restaurantes) charts.restaurantes.destroy();
+  const ctx = document.getElementById('chart-restaurantes').getContext('2d');
+  charts.restaurantes = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: vals,
+        backgroundColor: PALETA.slice(0, labels.length),
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${fmtEurFull(ctx.raw)}  (${(ctx.raw/total*100).toFixed(1)}%)`
+          }
+        },
+        datalabels: {
+          anchor: 'end', align: 'right',
+          formatter: (v) => `${fmtEur(v)}  (${(v/total*100).toFixed(1)}%)`,
+          font: { size: 8.5, weight: 'bold' },
+          color: '#1F3864',
+        }
+      },
+      scales: {
+        x: { ticks: { callback: v => fmtEur(v), font:{size:9} }, grid:{color:'#F0F0F0'} },
+        y: { ticks: { font:{size:8.5} }, grid:{display:false} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO: PROVEEDORES (Pareto)
+// ═══════════════════════════════════════════════════════════
+function updateProveedores() {
+  const data  = sortDesc(groupBy(FILTERED, 'PROVEEDOR'));
+  const total = data.reduce((s,[,v])=>s+v,0);
+  const labels = data.map(([k])=>k.length>18?k.substring(0,18)+'…':k);
+  const vals   = data.map(([,v])=>v);
+  let acum = 0;
+  const acumPct = vals.map(v => { acum += v; return +(acum/total*100).toFixed(1); });
+
+  if (charts.proveedores) charts.proveedores.destroy();
+  const ctx = document.getElementById('chart-proveedores').getContext('2d');
+  charts.proveedores = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [{
+        type: 'bar',
+        label: 'Gasto (€)',
+        data: vals,
+        backgroundColor: PALETA.slice(0, labels.length),
+        borderRadius: 4,
+        yAxisID: 'y',
+      },{
+        type: 'line',
+        label: '% Acumulado',
+        data: acumPct,
+        borderColor: '#ED7D31',
+        borderWidth: 2.2,
+        pointBackgroundColor: '#ED7D31',
+        pointRadius: 4,
+        tension: 0.1,
+        fill: false,
+        yAxisID: 'y2',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.datasetIndex===0
+              ? ` ${fmtEurFull(ctx.raw)}  (${(ctx.raw/total*100).toFixed(1)}%)`
+              : ` Acumulado: ${ctx.raw}%`
+          }
+        },
+        datalabels: { display: false }
+      },
+      scales: {
+        y:  { ticks:{callback:v=>fmtEur(v),font:{size:8.5}}, grid:{color:'#F0F0F0'} },
+        y2: { position:'right', min:0, max:100,
+              ticks:{callback:v=>v+'%',font:{size:8.5},color:'#ED7D31'},
+              grid:{display:false} },
+        x:  { ticks:{font:{size:7.5},maxRotation:38}, grid:{display:false} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO: TOP 10 PRODUCTOS
+// ═══════════════════════════════════════════════════════════
+function updateProductos() {
+  const data  = sortAsc(groupBy(FILTERED, 'PRODUCTO')).slice(-10);
+  const total = FILTERED.reduce((s,r)=>s+r.TOTAL_LINEA,0);
+  const labels = data.map(([k])=>k.length>40?k.substring(0,40)+'…':k);
+  const vals   = data.map(([,v])=>v);
+
+  if (charts.productos) charts.productos.destroy();
+  const ctx = document.getElementById('chart-productos').getContext('2d');
+  const cmap = vals.map((_,i) => `rgba(46,117,182,${0.35+0.55*(i/vals.length)})`);
+  charts.productos = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: vals,
+        backgroundColor: cmap,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${fmtEurFull(ctx.raw)}  (${(ctx.raw/total*100).toFixed(1)}%)`
+          }
+        },
+        datalabels: {
+          anchor: 'end', align: 'right',
+          formatter: v => `${fmtEur(v)}  (${(v/total*100).toFixed(1)}%)`,
+          font: { size: 8, weight: 'bold' },
+          color: '#1F3864',
+        }
+      },
+      scales: {
+        x: { ticks:{callback:v=>fmtEur(v),font:{size:9}}, grid:{color:'#F0F0F0'} },
+        y: { ticks:{font:{size:7.8}}, grid:{display:false} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO: MARISCO vs PESCADO (líneas por mes)
+// ═══════════════════════════════════════════════════════════
+function updateSubtipo() {
+  const subtipos = [...new Set(FILTERED.map(r=>r.SUBTIPO))].filter(Boolean);
+  const colores  = ['#2E75B6','#ED7D31','#70AD47'];
+  const datasets = subtipos.map((sub, i) => {
+    const sums = {};
+    MESES_ORDEN.forEach(m => sums[m] = 0);
+    FILTERED.filter(r=>r.SUBTIPO===sub).forEach(r=>{
+      const m = MESES_NUM[r.MES_NUM];
+      if (m) sums[m] = (sums[m]||0) + r.TOTAL_LINEA;
+    });
+    const shortName = sub.replace('MARISCO O MOLUSCOS','MARISCO/MOLUSCOS');
+    return {
+      label: shortName,
+      data: MESES_ORDEN.map(m=>sums[m]||0),
+      borderColor: colores[i % colores.length],
+      backgroundColor: colores[i % colores.length] + '18',
+      borderWidth: 2.5,
+      pointBackgroundColor: colores[i % colores.length],
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      tension: 0.3,
+      fill: true,
+    };
+  });
+
+  if (charts.subtipo) charts.subtipo.destroy();
+  const ctx = document.getElementById('chart-subtipo').getContext('2d');
+  charts.subtipo = new Chart(ctx, {
+    type: 'line',
+    data: { labels: MESES_ORDEN, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position:'top', labels:{font:{size:9}, boxWidth:12} },
+        datalabels: { display: false }
+      },
+      scales: {
+        y: { ticks:{callback:v=>fmtEur(v),font:{size:9}}, grid:{color:'#F0F0F0'} },
+        x: { grid:{display:false} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABLA: RIESGO PROVEEDORES
+// ═══════════════════════════════════════════════════════════
+function updateTablaRiesgo() {
+  const data  = sortDesc(groupBy(FILTERED, 'PROVEEDOR'));
+  const total = data.reduce((s,[,v])=>s+v,0);
+
+  // Nº restaurantes y productos por proveedor
+  const restByProv = {}, prodByProv = {};
+  FILTERED.forEach(r => {
+    if (!restByProv[r.PROVEEDOR]) restByProv[r.PROVEEDOR] = new Set();
+    if (!prodByProv[r.PROVEEDOR]) prodByProv[r.PROVEEDOR] = new Set();
+    restByProv[r.PROVEEDOR].add(r.RESTAURANTE);
+    prodByProv[r.PROVEEDOR].add(r.PRODUCTO);
+  });
+
+  let acum = 0;
+  const tbody = document.getElementById('tabla-riesgo-body');
+  tbody.innerHTML = '';
+  data.forEach(([prov, gasto], i) => {
+    const pct  = total > 0 ? gasto/total*100 : 0;
+    acum += pct;
+    const riesgo = pct > 15 ? 'ALTO' : pct > 8 ? 'MEDIO' : 'BAJO';
+    const badgeClass = riesgo === 'ALTO' ? 'badge-alto' : riesgo === 'MEDIO' ? 'badge-medio' : 'badge-bajo';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:700;color:#888">${i+1}</td>
+      <td style="font-weight:600">${prov}</td>
+      <td style="font-weight:700;color:#1F3864">${fmtEurFull(gasto)}</td>
+      <td>${pct.toFixed(1)}%</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:#eee;border-radius:4px;height:8px;overflow:hidden">
+            <div style="width:${Math.min(acum,100)}%;background:${acum>80?'#E05252':'#ED7D31'};height:100%;border-radius:4px"></div>
+          </div>
+          <span style="font-size:0.75rem;font-weight:700;color:${acum>80?'#E05252':'#666'}">${acum.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td style="text-align:center">${(restByProv[prov]||new Set()).size}</td>
+      <td style="text-align:center">${(prodByProv[prov]||new Set()).size}</td>
+      <td><span class="badge-riesgo ${badgeClass}">${riesgo}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ARRANQUE
+// ═══════════════════════════════════════════════════════════
+async function init() {
+  try {
+    const resp = await fetch('data.json');
+    ALL_DATA   = await resp.json();
+    FILTERED   = [...ALL_DATA];
+    populateSelects();
+    updateAll();
+    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<p style="color:#ff6b6b;font-size:1.1rem">❌ Error al cargar los datos.<br>Asegúrate de abrir el dashboard desde un servidor web.</p>';
+    console.error(e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
