@@ -327,6 +327,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     </div>
   </div>
 
+  <!-- CUENTA DE EXPLOTACIÓN -->
+  <div class="section" id="seccion-explotacion">
+    <div class="section-header">
+      <div>
+        <div class="section-title"><span class="icon">📋</span>Cuenta de Explotación Simplificada por Restaurante</div>
+        <div class="section-subtitle">Ventas · Coste Materia Prima · Margen Bruto · % Food Cost · Período comparable (sin inventarios)</div>
+      </div>
+      <div class="tabs" id="tabs-explot">
+        <button class="tab-btn active" onclick="selectExplotTab('tabla',this)">Tabla</button>
+        <button class="tab-btn" onclick="selectExplotTab('grafico',this)">Gráfico</button>
+      </div>
+    </div>
+    <div id="explot-tabla-wrap" style="overflow-x:auto">
+      <table class="fc-table" id="tabla-explotacion">
+        <thead>
+          <tr>
+            <th>Restaurante</th>
+            <th colspan="4" style="text-align:center;background:#dbeafe;color:#1e40af">2025</th>
+            <th colspan="4" style="text-align:center;background:#ffedd5;color:#9a3412">2026</th>
+          </tr>
+          <tr>
+            <th></th>
+            <th style="background:#eff6ff">Ventas</th><th style="background:#eff6ff">Compras</th><th style="background:#eff6ff">Margen €</th><th style="background:#eff6ff">FC%</th>
+            <th style="background:#fff7ed">Ventas</th><th style="background:#fff7ed">Compras</th><th style="background:#fff7ed">Margen €</th><th style="background:#fff7ed">FC%</th>
+            <th>Var. Ventas</th><th>Var. Compras</th><th>Var. FC</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-explotacion"></tbody>
+        <tfoot id="tfoot-explotacion"></tfoot>
+      </table>
+    </div>
+    <div id="explot-chart-wrap" style="display:none">
+      <div class="chart-wrap-tall"><canvas id="chart-explotacion"></canvas></div>
+    </div>
+  </div>
+
   <!-- FILA 3: Proveedores Pareto + Familias -->
   <div class="grid-2">
     <div class="section">
@@ -569,9 +605,31 @@ function getFiltros(){
   };
 }
 
+function esVistaIndividual(){
+  // Vista individual = exactamente 1 restaurante seleccionado
+  return !MS_ALL.restaurante && MS_SELECTED.restaurante.size === 1;
+}
+
 function filtrarRaw(){
   const f=getFiltros();
-  return DATA.raw.filter(r=>{
+  // Si es vista individual de un restaurante, incluir compras internas
+  const fuente = esVistaIndividual() ? DATA.raw_con_internos : DATA.raw;
+  return fuente.filter(r=>{
+    if(f.restaurante&&f.restaurante.length&&!f.restaurante.includes(r.RESTAURANTE))return false;
+    if(f.proveedor&&f.proveedor.length&&!f.proveedor.includes(r.PROVEEDOR))return false;
+    if(f.familia&&r.FAMILIA!==f.familia)return false;
+    if(f.tipo&&r.TIPO!==f.tipo)return false;
+    if(f.mes&&r.MES!==parseInt(f.mes))return false;
+    if(f.año&&r.AÑO!==parseInt(f.año))return false;
+    return true;
+  });
+}
+
+function filtrarRawProd(){
+  const f=getFiltros();
+  // Si es vista individual de un restaurante, incluir compras internas (XUP XUP, Cocina Central)
+  const fuente = esVistaIndividual() ? DATA.raw_prod_internos : DATA.raw_prod;
+  return fuente.filter(r=>{
     if(f.restaurante&&f.restaurante.length&&!f.restaurante.includes(r.RESTAURANTE))return false;
     if(f.proveedor&&f.proveedor.length&&!f.proveedor.includes(r.PROVEEDOR))return false;
     if(f.familia&&r.FAMILIA!==f.familia)return false;
@@ -1200,32 +1258,208 @@ function renderTablaProveedores(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// TABLA PRODUCTOS
+// TABLA PRODUCTOS (dinámica con período comparable)
 // ═══════════════════════════════════════════════════════════════════════
 function renderTablaProductos(){
-  const f=getFiltros();
-  let prods=DATA.productos;
-  if(f.familia)prods=prods.filter(p=>p.familia===f.familia);
-  if(f.tipo)prods=prods.filter(p=>p.tipo===f.tipo);
+  const f = getFiltros();
+  const rawAll = filtrarRawProd();
+  const periodo = getPeriodoComparable(filtrarRaw());
+
+  // Calcular compras por producto en el período comparable
+  const prodMap = {};
+  rawAll.forEach(r => {
+    const key = r.PRODUCTO;
+    if(!key) return;
+    if(!prodMap[key]) prodMap[key] = {nombre:r.PRODUCTO, familia:r.FAMILIA, tipo:r.TIPO, unidad:r.UNIDAD,
+      c25:0, c26:0, qty25:0, qty26:0, imp25:0, imp26:0};
+    const inPeriod25 = r.AÑO===2025 && (f.año!=='2026') && (!periodo.meses25||periodo.meses25.includes(r.MES));
+    const inPeriod26 = r.AÑO===2026 && (f.año!=='2025') && (!periodo.meses26||periodo.meses26.includes(r.MES));
+    if(inPeriod25){ prodMap[key].c25 += r.COMPRAS; prodMap[key].qty25 += r.CANTIDAD||0; prodMap[key].imp25 += r.COMPRAS; }
+    if(inPeriod26){ prodMap[key].c26 += r.COMPRAS; prodMap[key].qty26 += r.CANTIDAD||0; prodMap[key].imp26 += r.COMPRAS; }
+  });
+
+  // Aplicar filtros de familia y tipo
+  let prods = Object.values(prodMap);
+  if(f.familia) prods = prods.filter(p=>p.familia===f.familia);
+  if(f.tipo) prods = prods.filter(p=>p.tipo===f.tipo);
+
+  // Ordenar por gasto total (2025+2026)
+  prods.sort((a,b) => (b.c25+b.c26) - (a.c25+a.c26));
 
   let html='';
   prods.slice(0,30).forEach((p,i)=>{
-    const alertaPrecio=p.var_precio_pct&&Math.abs(p.var_precio_pct)>15;
+    const varC = p.c25>0&&p.c26>0 ? (p.c26-p.c25)/p.c25*100 : null;
+    const pm25 = p.qty25>0 ? p.c25/p.qty25 : null;
+    const pm26 = p.qty26>0 ? p.c26/p.qty26 : null;
+    const varP = pm25&&pm26 ? (pm26-pm25)/pm25*100 : null;
+    const alertaPrecio = varP && Math.abs(varP)>15;
     html+=`<tr style="${alertaPrecio?'background:#fff5f5':''}">
       <td style="color:var(--texto2)">${i+1}</td>
       <td><strong>${p.nombre}</strong></td>
-      <td><span style="font-size:10px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.familia}</span></td>
+      <td><span style="font-size:10px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.familia||'—'}</span></td>
       <td><span style="font-size:10px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.tipo||'—'}</span></td>
       <td style="color:var(--texto2)">${p.unidad||'—'}</td>
-      <td>${fmt(p.compras_2025)}</td>
-      <td>${fmt(p.compras_2026)}</td>
-      <td>${fmtVar(p.var_compras_pct,false)}</td>
-      <td>${p.precio_medio_2025?p.precio_medio_2025.toFixed(2)+' €':'—'}</td>
-      <td>${p.precio_medio_2026?p.precio_medio_2026.toFixed(2)+' €':'—'}</td>
-      <td>${alertaPrecio?`<span style="color:var(--rojo);font-weight:700">⚠️ ${fmtVar(p.var_precio_pct,false)}</span>`:fmtVar(p.var_precio_pct,false)}</td>
+      <td>${f.año==='2026'?'—':fmt(p.c25)}</td>
+      <td>${f.año==='2025'?'—':fmt(p.c26)}</td>
+      <td>${fmtVar(varC,false)}</td>
+      <td>${pm25?pm25.toFixed(2)+' €':'—'}</td>
+      <td>${pm26?pm26.toFixed(2)+' €':'—'}</td>
+      <td>${alertaPrecio?`<span style="color:var(--rojo);font-weight:700">⚠️ ${fmtVar(varP,false)}</span>`:fmtVar(varP,false)}</td>
     </tr>`;
   });
   document.getElementById('tbody-productos').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CUENTA DE EXPLOTACIÓN
+// ═══════════════════════════════════════════════════════════════════════
+let EXPLOT_MODO = 'tabla';
+function selectExplotTab(modo, btn){
+  EXPLOT_MODO = modo;
+  document.querySelectorAll('#tabs-explot .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('explot-tabla-wrap').style.display = modo==='tabla'?'':'none';
+  document.getElementById('explot-chart-wrap').style.display = modo==='grafico'?'':'none';
+  if(modo==='grafico') renderGraficoExplotacion();
+}
+
+function renderCuentaExplotacion(){
+  const rawAll = filtrarRaw();
+  const periodo = getPeriodoComparable(rawAll);
+  const f = getFiltros();
+
+  const todosRests = [...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+
+  const deducVentasR = (rows) => {
+    const vm = {};
+    rows.forEach(r => { const k = `${r.RESTAURANTE}|${r.MES}`; if(!vm[k]) vm[k] = r.VENTAS||0; });
+    return Object.values(vm).reduce((s,v)=>s+v, 0);
+  };
+
+  let totV25=0, totC25=0, totV26=0, totC26=0;
+  let html = '';
+
+  todosRests.forEach(rest => {
+    const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
+    const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
+    const c25 = r25.reduce((s,r)=>s+r.COMPRAS, 0);
+    const v25 = deducVentasR(r25);
+    const c26 = r26.reduce((s,r)=>s+r.COMPRAS, 0);
+    const v26 = deducVentasR(r26);
+    const m25 = v25 - c25;
+    const m26 = v26 - c26;
+    const fc25 = v25>0 ? c25/v25*100 : null;
+    const fc26 = v26>0 ? c26/v26*100 : null;
+    const varV = v25>0&&v26>0 ? (v26-v25)/v25*100 : null;
+    const varC = c25>0&&c26>0 ? (c26-c25)/c25*100 : null;
+    const varFC = fc25&&fc26 ? fc26-fc25 : null;
+
+    totV25+=v25; totC25+=c25; totV26+=v26; totC26+=c26;
+
+    const showRow = (c25>0||v25>0||c26>0||v26>0);
+    if(!showRow) return;
+
+    html += `<tr>
+      <td><strong>${rest}</strong></td>
+      <td style="background:#eff6ff">${f.año==='2026'?'—':fmt(v25)}</td>
+      <td style="background:#eff6ff">${f.año==='2026'?'—':fmt(c25)}</td>
+      <td style="background:#eff6ff;color:${m25>=0?'#15803d':'#b91c1c'};font-weight:700">${f.año==='2026'?'—':fmt(m25)}</td>
+      <td style="background:#eff6ff">${f.año==='2026'?'—':semaforo(fc25)}</td>
+      <td style="background:#fff7ed">${f.año==='2025'?'—':fmt(v26)}</td>
+      <td style="background:#fff7ed">${f.año==='2025'?'—':fmt(c26)}</td>
+      <td style="background:#fff7ed;color:${m26>=0?'#15803d':'#b91c1c'};font-weight:700">${f.año==='2025'?'—':fmt(m26)}</td>
+      <td style="background:#fff7ed">${f.año==='2025'?'—':semaforo(fc26)}</td>
+      <td>${fmtVar(varV, false)}</td>
+      <td>${fmtVar(varC, false)}</td>
+      <td>${varFC!==null?`<span class="${varFC>0?'var-up':'var-down'}">${varFC>0?'▲':'▼'} ${Math.abs(varFC).toFixed(1)}pp</span>`:'—'}</td>
+    </tr>`;
+  });
+
+  document.getElementById('tbody-explotacion').innerHTML = html;
+
+  // TOTALES
+  const totM25 = totV25 - totC25;
+  const totM26 = totV26 - totC26;
+  const totFC25 = totV25>0 ? totC25/totV25*100 : null;
+  const totFC26 = totV26>0 ? totC26/totV26*100 : null;
+  const tVarV = totV25>0&&totV26>0 ? (totV26-totV25)/totV25*100 : null;
+  const tVarC = totC25>0&&totC26>0 ? (totC26-totC25)/totC25*100 : null;
+  const tVarFC = totFC25&&totFC26 ? totFC26-totFC25 : null;
+
+  document.getElementById('tfoot-explotacion').innerHTML = `<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #cbd5e1">
+    <td><strong>TOTAL GRUPO</strong></td>
+    <td style="background:#dbeafe">${f.año==='2026'?'—':fmt(totV25)}</td>
+    <td style="background:#dbeafe">${f.año==='2026'?'—':fmt(totC25)}</td>
+    <td style="background:#dbeafe;color:${totM25>=0?'#15803d':'#b91c1c'}">${f.año==='2026'?'—':fmt(totM25)}</td>
+    <td style="background:#dbeafe">${f.año==='2026'?'—':semaforo(totFC25)}</td>
+    <td style="background:#ffedd5">${f.año==='2025'?'—':fmt(totV26)}</td>
+    <td style="background:#ffedd5">${f.año==='2025'?'—':fmt(totC26)}</td>
+    <td style="background:#ffedd5;color:${totM26>=0?'#15803d':'#b91c1c'}">${f.año==='2025'?'—':fmt(totM26)}</td>
+    <td style="background:#ffedd5">${f.año==='2025'?'—':semaforo(totFC26)}</td>
+    <td>${fmtVar(tVarV, false)}</td>
+    <td>${fmtVar(tVarC, false)}</td>
+    <td>${tVarFC!==null?`<span class="${tVarFC>0?'var-up':'var-down'}">${tVarFC>0?'▲':'▼'} ${Math.abs(tVarFC).toFixed(1)}pp</span>`:'—'}</td>
+  </tr>`;
+
+  if(EXPLOT_MODO==='grafico') renderGraficoExplotacion();
+}
+
+function renderGraficoExplotacion(){
+  const rawAll = filtrarRaw();
+  const periodo = getPeriodoComparable(rawAll);
+  const f = getFiltros();
+  const todosRests = [...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+
+  const deducVentasR = (rows) => {
+    const vm = {};
+    rows.forEach(r => { const k = `${r.RESTAURANTE}|${r.MES}`; if(!vm[k]) vm[k] = r.VENTAS||0; });
+    return Object.values(vm).reduce((s,v)=>s+v, 0);
+  };
+
+  const labels=[], dV25=[], dC25=[], dV26=[], dC26=[];
+  todosRests.forEach(rest => {
+    const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
+    const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
+    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const v25=deducVentasR(r25);
+    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const v26=deducVentasR(r26);
+    if(c25===0&&v25===0&&c26===0&&v26===0) return;
+    labels.push(rest.replace('RESTAURANTE ','').replace('COCINA CENTRAL ','CC '));
+    dV25.push(v25); dC25.push(c25); dV26.push(v26); dC26.push(c26);
+  });
+
+  const h = Math.max(400, labels.length*70);
+  const canvas = document.getElementById('chart-explotacion');
+  canvas.style.maxHeight = h+'px';
+  canvas.parentElement.style.minHeight = h+'px';
+
+  const ctx = canvas.getContext('2d');
+  if(CHARTS.explotacion) CHARTS.explotacion.destroy();
+
+  const datasets = [];
+  if(f.año!=='2026'){
+    datasets.push({label:'Ventas 2025',data:dV25,backgroundColor:'#10b98133',borderColor:'#10b981',borderWidth:2,borderRadius:4});
+    datasets.push({label:'Compras 2025',data:dC25,backgroundColor:C25+'99',borderColor:C25,borderWidth:2,borderRadius:4});
+  }
+  if(f.año!=='2025'){
+    datasets.push({label:'Ventas 2026',data:dV26,backgroundColor:'#8b5cf633',borderColor:'#8b5cf6',borderWidth:2,borderRadius:4});
+    datasets.push({label:'Compras 2026',data:dC26,backgroundColor:C26+'99',borderColor:C26,borderWidth:2,borderRadius:4});
+  }
+
+  CHARTS.explotacion = new Chart(ctx, {
+    type:'bar',
+    data:{labels, datasets},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},
+        datalabels:{display:false}
+      },
+      scales:{x:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:10}},grid:{display:false}}}
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1240,6 +1474,7 @@ function renderAll(){
   renderRestaurantes();
   renderVentasCompras();
   renderTablaFoodCost();
+  renderCuentaExplotacion();
   renderPareto();
   renderFamilias();
   renderTipos();
