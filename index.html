@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Compras & Ventas — Comparativo 2025 vs 2026</title>
+<title>Dashboard Compras & Ventas — Grupo Restauración Arenal</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{
-  --azul:#1a3a5c;--azul2:#2563eb;--verde:#16a34a;--amarillo:#d97706;--rojo:#dc2626;
+  --naranja:#ff9a0d;--naranja2:#e68900;--azul:#1a3a5c;--azul2:#2563eb;
+  --verde:#16a34a;--amarillo:#d97706;--rojo:#dc2626;
   --gris:#f1f5f9;--borde:#e2e8f0;--texto:#1e293b;--texto2:#64748b;
   --c25:#3b82f6;--c26:#f97316;--cv25:#10b981;--cv26:#8b5cf6;
   --shadow:0 2px 8px rgba(0,0,0,.08);
@@ -17,60 +18,70 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--texto);font-size:13px}
 
 /* HEADER */
-.header{background:linear-gradient(135deg,var(--azul) 0%,#2563eb 100%);color:#fff;padding:14px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.header h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.header h1 span{font-size:12px;font-weight:400;opacity:.8;display:block;margin-top:2px}
-.badge-año{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600}
+.header{background:linear-gradient(135deg,#1a2e4a 0%,#1e3a5f 100%);color:#fff;padding:12px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}
+.logo-aj{background:var(--naranja);border-radius:8px;padding:6px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:90px;flex-shrink:0}
+.logo-aj .aj-main{font-size:16px;font-weight:900;color:#fff;letter-spacing:1px;line-height:1}
+.logo-aj .aj-sub{font-size:8px;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.header-titles{flex:1}
+.header-titles h1{font-size:17px;font-weight:700;letter-spacing:-.3px;color:#fff}
+.header-titles .sub{font-size:11px;font-weight:400;opacity:.75;margin-top:2px}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.badge-periodo{background:rgba(255,154,13,.25);border:1px solid rgba(255,154,13,.5);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--naranja);white-space:nowrap}
+.badge-made{font-size:9px;color:rgba(255,255,255,.5);text-align:right}
 
 /* FILTROS */
-.filtros-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filtros-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .filtro-group{display:flex;flex-direction:column;gap:2px}
-.filtro-group label{font-size:10px;font-weight:600;opacity:.8;text-transform:uppercase;letter-spacing:.5px}
-.filtro-group select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;min-width:140px}
+.filtro-group label{font-size:10px;font-weight:600;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+
+/* SELECT NORMAL */
+.filtro-group select{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;min-width:130px}
 .filtro-group select option{background:#1a3a5c;color:#fff}
-.btn-reset{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;align-self:flex-end}
-.btn-reset:hover{background:rgba(255,255,255,.3)}
-.info-filtro{font-size:10px;opacity:.7;align-self:flex-end;white-space:nowrap}
+
+/* MULTISELECT CUSTOM */
+.multi-select-wrap{position:relative;min-width:150px}
+.multi-select-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 28px 5px 8px;font-size:11px;cursor:pointer;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.multi-select-btn::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);opacity:.7}
+.multi-select-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#1e3a5f;border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:220px;max-height:280px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.multi-select-dropdown.open{display:block}
+.ms-search{width:100%;background:rgba(255,255,255,.1);border:none;border-bottom:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 10px;font-size:11px;outline:none}
+.ms-search::placeholder{color:rgba(255,255,255,.4)}
+.ms-item{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;font-size:11px;color:#fff;transition:background .1s}
+.ms-item:hover{background:rgba(255,255,255,.1)}
+.ms-item input[type=checkbox]{accent-color:var(--naranja);cursor:pointer;width:13px;height:13px}
+.ms-item.ms-all{border-bottom:1px solid rgba(255,255,255,.15);font-weight:600;color:var(--naranja)}
+.ms-count{display:inline-block;background:var(--naranja);color:#fff;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;vertical-align:middle}
+
+.btn-reset{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap}
+.btn-reset:hover{background:rgba(255,255,255,.25)}
+.info-filtro{font-size:10px;opacity:.65;white-space:nowrap;align-self:center}
 
 /* SEMÁFOROS CONFIG */
-.semaforo-config{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.semaforo-config span{font-size:10px;font-weight:600;opacity:.9;text-transform:uppercase;letter-spacing:.5px}
+.semaforo-config{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.semaforo-config span{font-size:10px;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
 .semaforo-input-group{display:flex;align-items:center;gap:4px}
-.semaforo-input-group label{font-size:10px;opacity:.8}
-.semaforo-input-group input{width:52px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:4px;padding:3px 6px;font-size:11px;font-weight:600;text-align:center}
+.semaforo-input-group label{font-size:10px;opacity:.75}
+.semaforo-input-group input{width:52px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:4px;padding:3px 6px;font-size:11px;font-weight:600;text-align:center}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.dot-verde{background:#22c55e}
-.dot-amarillo{background:#f59e0b}
-.dot-rojo{background:#ef4444}
+.dot-verde{background:#22c55e}.dot-amarillo{background:#f59e0b}.dot-rojo{background:#ef4444}
 
 /* MAIN */
 .main{padding:16px 20px;max-width:1600px;margin:0 auto}
 
 /* KPIs */
-.kpis-section{margin-bottom:16px}
-.kpis-year-tabs{display:flex;gap:8px;margin-bottom:10px}
-.year-tab{padding:6px 16px;border-radius:20px;border:2px solid var(--borde);background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:var(--texto2);transition:all .2s}
-.year-tab.active-25{border-color:var(--c25);background:#eff6ff;color:var(--c25)}
-.year-tab.active-26{border-color:var(--c26);background:#fff7ed;color:var(--c26)}
-.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
-.kpi-card{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:var(--shadow);border-left:4px solid var(--borde);position:relative;overflow:hidden}
-.kpi-card.c25{border-left-color:var(--c25)}
-.kpi-card.c26{border-left-color:var(--c26)}
-.kpi-card.verde{border-left-color:var(--verde)}
-.kpi-card.amarillo{border-left-color:var(--amarillo)}
-.kpi-card.rojo{border-left-color:var(--rojo)}
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:16px}
+.kpi-card{background:#fff;border-radius:10px;padding:14px 16px;box-shadow:var(--shadow);border-left:4px solid var(--borde)}
+.kpi-card.c25{border-left-color:var(--c25)}.kpi-card.c26{border-left-color:var(--c26)}
+.kpi-card.verde{border-left-color:var(--verde)}.kpi-card.amarillo{border-left-color:var(--amarillo)}.kpi-card.rojo{border-left-color:var(--rojo)}
 .kpi-label{font-size:10px;font-weight:600;color:var(--texto2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
 .kpi-val{font-size:20px;font-weight:800;color:var(--texto);line-height:1}
 .kpi-sub{font-size:10px;color:var(--texto2);margin-top:3px}
 .kpi-var{font-size:11px;font-weight:700;margin-top:4px}
-.kpi-var.up{color:var(--rojo)}
-.kpi-var.down{color:var(--verde)}
-.kpi-var.neutral{color:var(--texto2)}
-.kpi-comparativa{display:flex;gap:8px;margin-top:6px}
-.kpi-año-val{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px}
-.kpi-año-val.v25{background:#eff6ff;color:var(--c25)}
-.kpi-año-val.v26{background:#fff7ed;color:var(--c26)}
+.kpi-var.up{color:var(--rojo)}.kpi-var.down{color:var(--verde)}.kpi-var.neutral{color:var(--texto2)}
+
+/* AVISO PERIODO */
+.aviso-periodo{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 14px;font-size:11px;color:#92400e;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 
 /* SECCIONES */
 .section{background:#fff;border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
@@ -78,63 +89,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 .section-title{font-size:14px;font-weight:700;color:var(--texto);display:flex;align-items:center;gap:6px}
 .section-title .icon{font-size:16px}
 .section-subtitle{font-size:11px;color:var(--texto2);margin-top:2px}
-
-/* LEYENDA AÑOS */
 .leyenda-años{display:flex;gap:12px;align-items:center}
 .leyenda-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
 .leyenda-dot{width:12px;height:12px;border-radius:3px}
 
-/* GRID GRÁFICOS */
+/* GRIDS */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
 
-/* CHART CONTAINERS */
-.chart-wrap{position:relative}
-.chart-wrap canvas{max-height:280px}
-.chart-wrap-tall canvas{max-height:360px}
+/* CHARTS */
+.chart-wrap{position:relative}.chart-wrap canvas{max-height:300px}
+.chart-wrap-tall canvas{max-height:600px}
 
-/* TABLA FOOD COST */
-.fc-table{width:100%;border-collapse:collapse;font-size:11px}
-.fc-table th{background:var(--gris);padding:7px 10px;text-align:left;font-weight:600;color:var(--texto2);border-bottom:2px solid var(--borde);white-space:nowrap}
-.fc-table td{padding:7px 10px;border-bottom:1px solid var(--borde);vertical-align:middle}
-.fc-table tr:hover td{background:#f8fafc}
+/* TABLAS */
+.fc-table,.prov-table,.prod-table{width:100%;border-collapse:collapse;font-size:11px}
+.fc-table th,.prov-table th,.prod-table th{background:var(--gris);padding:7px 10px;text-align:left;font-weight:600;color:var(--texto2);border-bottom:2px solid var(--borde);white-space:nowrap}
+.fc-table td,.prov-table td,.prod-table td{padding:7px 10px;border-bottom:1px solid var(--borde);vertical-align:middle}
+.fc-table tr:hover td,.prov-table tr:hover td,.prod-table tr:hover td{background:#f8fafc}
 .fc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
-.fc-verde{background:#dcfce7;color:#15803d}
-.fc-amarillo{background:#fef9c3;color:#92400e}
-.fc-rojo{background:#fee2e2;color:#b91c1c}
-.fc-neutro{background:#f1f5f9;color:#475569}
-.var-up{color:var(--rojo);font-weight:700}
-.var-down{color:var(--verde);font-weight:700}
-.var-neu{color:var(--texto2)}
-
-/* TABLA PROVEEDORES */
-.prov-table{width:100%;border-collapse:collapse;font-size:11px}
-.prov-table th{background:var(--gris);padding:7px 10px;text-align:left;font-weight:600;color:var(--texto2);border-bottom:2px solid var(--borde)}
-.prov-table td{padding:7px 10px;border-bottom:1px solid var(--borde)}
-.prov-table tr:hover td{background:#f8fafc}
+.fc-verde{background:#dcfce7;color:#15803d}.fc-amarillo{background:#fef9c3;color:#92400e}.fc-rojo{background:#fee2e2;color:#b91c1c}.fc-neutro{background:#f1f5f9;color:#475569}
+.var-up{color:var(--rojo);font-weight:700}.var-down{color:var(--verde);font-weight:700}.var-neu{color:var(--texto2)}
 .bar-mini{height:6px;border-radius:3px;background:var(--c25);display:inline-block;vertical-align:middle;margin-right:4px}
 
-/* TABLA PRODUCTOS */
-.prod-table{width:100%;border-collapse:collapse;font-size:11px}
-.prod-table th{background:var(--gris);padding:7px 10px;text-align:left;font-weight:600;color:var(--texto2);border-bottom:2px solid var(--borde);white-space:nowrap}
-.prod-table td{padding:7px 10px;border-bottom:1px solid var(--borde)}
-.prod-table tr:hover td{background:#f8fafc}
-
 /* TABS */
-.tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
-.tab-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--borde);background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--texto2);transition:all .15s}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--borde);background:#fff;cursor:pointer;font-size:10px;font-weight:600;color:var(--texto2);transition:all .15s}
 .tab-btn.active{background:var(--azul2);color:#fff;border-color:var(--azul2)}
 
 /* FOOTER */
 .footer{text-align:center;padding:16px;color:var(--texto2);font-size:10px;border-top:1px solid var(--borde);margin-top:8px}
+.footer strong{color:var(--naranja)}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#f1f5f9}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-
-/* LOADING */
 .loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--texto2);font-size:14px}
 </style>
 </head>
@@ -143,85 +133,119 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 <!-- HEADER -->
 <div class="header">
   <div class="header-top">
-    <div>
-      <h1>📊 Dashboard Compras & Ventas
-        <span>Grupo Restauración · Comparativo 2025 vs 2026 · Análisis en tiempo real</span>
-      </h1>
+    <!-- LOGO AJ GLOBAL -->
+    <div class="logo-aj">
+      <div class="aj-main">AJ</div>
+      <div class="aj-sub">Global</div>
     </div>
-    <div class="badge-año" id="badge-periodo">Ene 2025 – Mar 2026</div>
+    <!-- TÍTULOS -->
+    <div class="header-titles">
+      <h1>📊 Dashboard Compras &amp; Ventas — Grupo Restauración Arenal</h1>
+      <div class="sub">Análisis comparativo 2025 vs 2026 · Compras netas sin transferencias internas · Actualización en tiempo real</div>
+    </div>
+    <!-- BADGE PERIODO -->
+    <div class="header-right">
+      <div class="badge-periodo" id="badge-periodo">Cargando...</div>
+      <div class="badge-made">Desarrollado por <strong style="color:var(--naranja)">AJ Global</strong></div>
+    </div>
   </div>
 
   <!-- FILTROS -->
   <div class="filtros-bar">
+    <!-- RESTAURANTE MULTISELECT -->
     <div class="filtro-group">
       <label>🏠 Restaurante</label>
-      <select id="f-restaurante"><option value="">Todos los restaurantes</option></select>
+      <div class="multi-select-wrap" id="wrap-restaurante">
+        <button class="multi-select-btn" id="btn-restaurante" onclick="toggleMS('restaurante')">Todos los restaurantes</button>
+        <div class="multi-select-dropdown" id="dd-restaurante">
+          <input class="ms-search" placeholder="Buscar..." oninput="filterMS('restaurante',this.value)">
+          <div class="ms-item ms-all" onclick="toggleAllMS('restaurante')">
+            <input type="checkbox" id="all-restaurante" checked> Todos
+          </div>
+          <div id="items-restaurante"></div>
+        </div>
+      </div>
     </div>
+    <!-- PROVEEDOR MULTISELECT -->
     <div class="filtro-group">
       <label>📦 Proveedor</label>
-      <select id="f-proveedor"><option value="">Todos los proveedores</option></select>
+      <div class="multi-select-wrap" id="wrap-proveedor">
+        <button class="multi-select-btn" id="btn-proveedor" onclick="toggleMS('proveedor')">Todos los proveedores</button>
+        <div class="multi-select-dropdown" id="dd-proveedor">
+          <input class="ms-search" placeholder="Buscar..." oninput="filterMS('proveedor',this.value)">
+          <div class="ms-item ms-all" onclick="toggleAllMS('proveedor')">
+            <input type="checkbox" id="all-proveedor" checked> Todos
+          </div>
+          <div id="items-proveedor"></div>
+        </div>
+      </div>
     </div>
+    <!-- FAMILIA -->
     <div class="filtro-group">
       <label>🗂️ Familia</label>
       <select id="f-familia"><option value="">Todas las familias</option></select>
     </div>
+    <!-- TIPO -->
     <div class="filtro-group">
       <label>📋 Tipo</label>
       <select id="f-tipo"><option value="">Todos los tipos</option></select>
     </div>
+    <!-- MES -->
     <div class="filtro-group">
       <label>📅 Mes</label>
       <select id="f-mes"><option value="">Todos los meses</option></select>
     </div>
+    <!-- AÑO -->
     <div class="filtro-group">
       <label>📆 Año</label>
       <select id="f-año">
-        <option value="">2025 y 2026</option>
-        <option value="2025">Solo 2025</option>
+        <option value="">Comparativa (mismo período)</option>
+        <option value="2025">Solo 2025 (año completo)</option>
         <option value="2026">Solo 2026</option>
       </select>
     </div>
     <button class="btn-reset" onclick="resetFiltros()">↺ Limpiar</button>
-    <div class="info-filtro" id="info-filtro">Cargando datos...</div>
+    <div class="info-filtro" id="info-filtro">Cargando...</div>
   </div>
 
   <!-- SEMÁFOROS CONFIG -->
-  <div style="margin-top:8px">
-    <div class="semaforo-config">
-      <span>🚦 Umbrales Food Cost:</span>
-      <div class="semaforo-input-group">
-        <span class="dot dot-verde"></span>
-        <label>Verde &lt;</label>
-        <input type="number" id="umbral-verde" value="30" min="1" max="99" step="0.5">
-        <label>%</label>
-      </div>
-      <div class="semaforo-input-group">
-        <span class="dot dot-amarillo"></span>
-        <label>Amarillo</label>
-        <input type="number" id="umbral-amarillo-min" value="30" min="1" max="99" step="0.5">
-        <label>–</label>
-        <input type="number" id="umbral-amarillo-max" value="38" min="1" max="99" step="0.5">
-        <label>%</label>
-      </div>
-      <div class="semaforo-input-group">
-        <span class="dot dot-rojo"></span>
-        <label>Rojo &gt;</label>
-        <input type="number" id="umbral-rojo" value="38" min="1" max="99" step="0.5">
-        <label>%</label>
-      </div>
-      <button class="btn-reset" onclick="aplicarUmbrales()">Aplicar</button>
+  <div class="semaforo-config">
+    <span>🚦 Umbrales Food Cost:</span>
+    <div class="semaforo-input-group">
+      <span class="dot dot-verde"></span>
+      <label>Verde &lt;</label>
+      <input type="number" id="umbral-verde" value="30" min="1" max="99" step="0.5">
+      <label>%</label>
     </div>
+    <div class="semaforo-input-group">
+      <span class="dot dot-amarillo"></span>
+      <label>Amarillo</label>
+      <input type="number" id="umbral-amarillo-min" value="30" min="1" max="99" step="0.5">
+      <label>–</label>
+      <input type="number" id="umbral-amarillo-max" value="38" min="1" max="99" step="0.5">
+      <label>%</label>
+    </div>
+    <div class="semaforo-input-group">
+      <span class="dot dot-rojo"></span>
+      <label>Rojo &gt;</label>
+      <input type="number" id="umbral-rojo" value="38" min="1" max="99" step="0.5">
+      <label>%</label>
+    </div>
+    <button class="btn-reset" onclick="aplicarUmbrales()">✓ Aplicar</button>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
 
+  <!-- AVISO PERÍODO -->
+  <div class="aviso-periodo" id="aviso-periodo" style="display:none">
+    ⚠️ <span id="aviso-texto"></span>
+  </div>
+
   <!-- KPIs -->
-  <div class="kpis-section">
-    <div class="kpis-grid" id="kpis-grid">
-      <div class="loading">Cargando KPIs...</div>
-    </div>
+  <div class="kpis-grid" id="kpis-grid">
+    <div class="loading">Cargando KPIs...</div>
   </div>
 
   <!-- FILA 1: Evolución mensual + Food Cost mensual -->
@@ -230,7 +254,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
       <div class="section-header">
         <div>
           <div class="section-title"><span class="icon">📈</span>Evolución Mensual de Compras</div>
-          <div class="section-subtitle">Comparativa 2025 vs 2026 · Compras netas sin transferencias internas</div>
+          <div class="section-subtitle" id="sub-mensual">Comparativa mismo período 2025 vs 2026</div>
         </div>
         <div class="leyenda-años">
           <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c25)"></div>2025</div>
@@ -243,7 +267,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
       <div class="section-header">
         <div>
           <div class="section-title"><span class="icon">💰</span>Food Cost Mensual (%)</div>
-          <div class="section-subtitle">Compras / Ventas · Semáforo según umbrales configurados</div>
+          <div class="section-subtitle">Compras / Ventas · Puntos coloreados según semáforo</div>
         </div>
         <div class="leyenda-años">
           <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c25)"></div>2025</div>
@@ -260,7 +284,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
       <div class="section-header">
         <div>
           <div class="section-title"><span class="icon">🏠</span>Compras por Restaurante</div>
-          <div class="section-subtitle">Comparativa 2025 vs 2026 por centro de coste</div>
+          <div class="section-subtitle" id="sub-restaurantes">Todos los centros de coste · Comparativa mismo período</div>
+        </div>
+        <div class="leyenda-años">
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c25)"></div>2025</div>
+          <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c26)"></div>2026</div>
         </div>
       </div>
       <div class="chart-wrap-tall"><canvas id="chart-restaurantes"></canvas></div>
@@ -269,7 +297,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
       <div class="section-header">
         <div>
           <div class="section-title"><span class="icon">📊</span>Ventas vs Compras por Restaurante</div>
-          <div class="section-subtitle">Período disponible · Ingresos y coste de materia prima</div>
+          <div class="section-subtitle" id="sub-ventas">Ingresos y coste de materia prima · Período comparable</div>
         </div>
       </div>
       <div class="chart-wrap-tall"><canvas id="chart-ventas-compras"></canvas></div>
@@ -281,7 +309,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     <div class="section-header">
       <div>
         <div class="section-title"><span class="icon">🚦</span>Semáforo de Food Cost por Restaurante</div>
-        <div class="section-subtitle">% Compras / Ventas · Los umbrales son configurables en la barra superior</div>
+        <div class="section-subtitle">% Compras / Ventas · Umbrales configurables arriba · Comparativa mismo período</div>
       </div>
     </div>
     <div style="overflow-x:auto">
@@ -299,13 +327,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     </div>
   </div>
 
-  <!-- FILA 3: Proveedores Pareto + Por familia -->
+  <!-- FILA 3: Proveedores Pareto + Familias -->
   <div class="grid-2">
     <div class="section">
       <div class="section-header">
         <div>
           <div class="section-title"><span class="icon">📦</span>Concentración de Proveedores (Pareto)</div>
-          <div class="section-subtitle">Top proveedores · Barras=importe · Línea=% acumulado</div>
+          <div class="section-subtitle">Top proveedores · Barras = importe · Línea = % acumulado</div>
         </div>
       </div>
       <div class="chart-wrap"><canvas id="chart-pareto"></canvas></div>
@@ -321,7 +349,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     </div>
   </div>
 
-  <!-- FILA 4: Por tipo + Evolución proveedor -->
+  <!-- FILA 4: Tipos + Evolución proveedor -->
   <div class="grid-2">
     <div class="section">
       <div class="section-header">
@@ -349,17 +377,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     <div class="section-header">
       <div>
         <div class="section-title"><span class="icon">🔍</span>Análisis Detallado de Proveedores</div>
-        <div class="section-subtitle">Comparativa 2025 vs 2026 · Variación de gasto y concentración</div>
+        <div class="section-subtitle">Comparativa mismo período 2025 vs 2026 · Variación de gasto y concentración</div>
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table class="prov-table" id="tabla-proveedores">
+      <table class="prov-table">
         <thead>
           <tr>
             <th>#</th><th>Proveedor</th>
             <th>Compras 2025</th><th>Compras 2026</th><th>Variación</th>
             <th>% s/Total</th><th>% Acumulado</th>
-            <th>Restaurantes</th><th>Productos</th>
+            <th>Restaurantes</th>
           </tr>
         </thead>
         <tbody id="tbody-proveedores"></tbody>
@@ -372,11 +400,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     <div class="section-header">
       <div>
         <div class="section-title"><span class="icon">🥇</span>Top 30 Productos — Variación de Precio y Volumen</div>
-        <div class="section-subtitle">Precio medio = Total € / Cantidad · Alerta roja si variación precio &gt;15%</div>
+        <div class="section-subtitle">Comparativa mismo período · Alerta ⚠️ si variación precio &gt;15%</div>
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table class="prod-table" id="tabla-productos">
+      <table class="prod-table">
         <thead>
           <tr>
             <th>#</th><th>Producto</th><th>Familia</th><th>Tipo</th><th>Ud.</th>
@@ -392,7 +420,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 </div>
 
 <div class="footer">
-  Dashboard de Compras & Ventas 2025–2026 · Grupo Restauración · Datos actualizados automáticamente al cambiar los filtros · Compras netas (excluidas transferencias internas)
+  Dashboard Compras &amp; Ventas 2025–2026 · <strong>Grupo Restauración Arenal</strong> · Datos actualizados al cambiar filtros · Compras netas sin transferencias internas · Desarrollado por <strong>AJ Global</strong>
 </div>
 
 <script>
@@ -403,12 +431,14 @@ let DATA = null;
 let CHARTS = {};
 let UMBRALES = {verde:30, amarillo_max:38};
 let PROV_ACTIVO = null;
+let MS_SELECTED = {restaurante: new Set(), proveedor: new Set()};
+let MS_ALL = {restaurante: true, proveedor: true};
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const C25 = '#3b82f6', C26 = '#f97316', CV25 = '#10b981', CV26 = '#8b5cf6';
 const C25_A = 'rgba(59,130,246,.15)', C26_A = 'rgba(249,115,22,.15)';
 
-function fmt(n){if(!n&&n!==0)return'—';if(n>=1000000)return(n/1000000).toFixed(1)+'M €';if(n>=1000)return(n/1000).toFixed(1)+'K €';return n.toFixed(0)+' €'}
+function fmt(n){if(!n&&n!==0)return'—';if(n>=1000000)return(n/1000000).toFixed(2)+'M €';if(n>=1000)return(n/1000).toFixed(1)+'K €';return n.toFixed(0)+' €'}
 function fmtPct(n){if(n===null||n===undefined)return'—';return n.toFixed(1)+'%'}
 function fmtVar(n,inv=false){if(n===null||n===undefined)return'<span class="var-neu">—</span>';const cls=inv?(n>0?'var-down':'var-up'):(n>0?'var-up':'var-down');const arrow=n>0?'▲':'▼';return`<span class="${cls}">${arrow} ${Math.abs(n).toFixed(1)}%</span>`}
 
@@ -421,49 +451,129 @@ function semaforo(fc){
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// FILTROS
+// MULTISELECT
 // ═══════════════════════════════════════════════════════════════════════
-function getFiltros(){
-  return{
-    restaurante:document.getElementById('f-restaurante').value,
-    proveedor:document.getElementById('f-proveedor').value,
-    familia:document.getElementById('f-familia').value,
-    tipo:document.getElementById('f-tipo').value,
-    mes:document.getElementById('f-mes').value,
-    año:document.getElementById('f-año').value
-  };
+function toggleMS(key){
+  const dd=document.getElementById('dd-'+key);
+  dd.classList.toggle('open');
+  // Cerrar el otro
+  const other=key==='restaurante'?'proveedor':'restaurante';
+  document.getElementById('dd-'+other).classList.remove('open');
 }
 
-function resetFiltros(){
-  ['f-restaurante','f-proveedor','f-familia','f-tipo','f-mes','f-año'].forEach(id=>{
-    document.getElementById(id).value='';
+// Cerrar dropdowns al hacer clic fuera
+document.addEventListener('click',e=>{
+  ['restaurante','proveedor'].forEach(key=>{
+    const wrap=document.getElementById('wrap-'+key);
+    if(wrap&&!wrap.contains(e.target)){
+      document.getElementById('dd-'+key).classList.remove('open');
+    }
   });
+});
+
+function filterMS(key,q){
+  const items=document.querySelectorAll(`#items-${key} .ms-item`);
+  items.forEach(item=>{
+    const txt=item.querySelector('label')?.textContent||'';
+    item.style.display=txt.toLowerCase().includes(q.toLowerCase())?'flex':'none';
+  });
+}
+
+function toggleAllMS(key){
+  const allChk=document.getElementById('all-'+key);
+  const checked=!allChk.checked; // toggleamos
+  allChk.checked=checked;
+  document.querySelectorAll(`#items-${key} input[type=checkbox]`).forEach(c=>{c.checked=checked;});
+  if(checked){
+    MS_ALL[key]=true;
+    MS_SELECTED[key]=new Set([...DATA.filtros[key+'s']||DATA.filtros[key==='restaurante'?'restaurantes':'proveedores']]);
+  } else {
+    MS_ALL[key]=false;
+    MS_SELECTED[key]=new Set();
+  }
+  updateMSBtn(key);
   renderAll();
 }
 
-function aplicarUmbrales(){
-  UMBRALES.verde=parseFloat(document.getElementById('umbral-verde').value)||30;
-  UMBRALES.amarillo_max=parseFloat(document.getElementById('umbral-rojo').value)||38;
-  renderTablaFoodCost();
-  renderKPIs();
+function onMSChange(key,val,chk){
+  if(chk.checked){
+    MS_SELECTED[key].add(val);
+  } else {
+    MS_SELECTED[key].delete(val);
+    document.getElementById('all-'+key).checked=false;
+    MS_ALL[key]=false;
+  }
+  // Si todos seleccionados, marcar "todos"
+  const allItems=document.querySelectorAll(`#items-${key} input[type=checkbox]`);
+  const allChecked=[...allItems].every(c=>c.checked);
+  if(allChecked){document.getElementById('all-'+key).checked=true;MS_ALL[key]=true;}
+  updateMSBtn(key);
+  renderAll();
 }
 
-// Sincronizar inputs de umbrales
-document.getElementById('umbral-verde').addEventListener('change',()=>{
-  document.getElementById('umbral-amarillo-min').value=document.getElementById('umbral-verde').value;
-});
-document.getElementById('umbral-rojo').addEventListener('change',()=>{
-  document.getElementById('umbral-amarillo-max').value=document.getElementById('umbral-rojo').value;
-});
+function updateMSBtn(key){
+  const btn=document.getElementById('btn-'+key);
+  const label=key==='restaurante'?'restaurante':'proveedor';
+  if(MS_ALL[key]||MS_SELECTED[key].size===0){
+    btn.innerHTML=`Todos los ${label}s`;
+  } else {
+    const n=MS_SELECTED[key].size;
+    btn.innerHTML=`${n} ${label}${n>1?'s':''} <span class="ms-count">${n}</span>`;
+  }
+}
+
+function buildMS(key, items){
+  const container=document.getElementById('items-'+key);
+  container.innerHTML='';
+  items.forEach(v=>{
+    const div=document.createElement('div');
+    div.className='ms-item';
+    div.innerHTML=`<input type="checkbox" checked onchange="onMSChange('${key}','${v.replace(/'/g,"\\'")}',this)"><label style="cursor:pointer;flex:1" onclick="this.previousElementSibling.click()">${v}</label>`;
+    container.appendChild(div);
+    MS_SELECTED[key].add(v);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// LÓGICA DE PERÍODO COMPARABLE
+// ═══════════════════════════════════════════════════════════════════════
+function getMesesDisponibles2026(raw){
+  const meses=[...new Set(raw.filter(r=>r.AÑO===2026).map(r=>r.MES))].sort((a,b)=>a-b);
+  return meses;
+}
+
+function getPeriodoComparable(raw){
+  const f=getFiltros();
+  if(f.año==='2025') return {meses25:null, meses26:null, modo:'solo2025'};
+  if(f.año==='2026') return {meses25:null, meses26:null, modo:'solo2026'};
+  // Modo comparativa: usar solo los meses disponibles en 2026
+  const meses26=getMesesDisponibles2026(raw);
+  if(f.mes){
+    // Si hay filtro de mes específico, usar ese mes en ambos años
+    return {meses25:[parseInt(f.mes)], meses26:[parseInt(f.mes)], modo:'comparativa'};
+  }
+  return {meses25:meses26, meses26:meses26, modo:'comparativa'};
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // FILTRAR DATOS RAW
 // ═══════════════════════════════════════════════════════════════════════
+function getFiltros(){
+  return{
+    restaurante: MS_ALL.restaurante ? '' : [...MS_SELECTED.restaurante],
+    proveedor: MS_ALL.proveedor ? '' : [...MS_SELECTED.proveedor],
+    familia: document.getElementById('f-familia').value,
+    tipo: document.getElementById('f-tipo').value,
+    mes: document.getElementById('f-mes').value,
+    año: document.getElementById('f-año').value
+  };
+}
+
 function filtrarRaw(){
   const f=getFiltros();
   return DATA.raw.filter(r=>{
-    if(f.restaurante&&r.RESTAURANTE!==f.restaurante)return false;
-    if(f.proveedor&&r.PROVEEDOR!==f.proveedor)return false;
+    if(f.restaurante&&f.restaurante.length&&!f.restaurante.includes(r.RESTAURANTE))return false;
+    if(f.proveedor&&f.proveedor.length&&!f.proveedor.includes(r.PROVEEDOR))return false;
     if(f.familia&&r.FAMILIA!==f.familia)return false;
     if(f.tipo&&r.TIPO!==f.tipo)return false;
     if(f.mes&&r.MES!==parseInt(f.mes))return false;
@@ -472,87 +582,165 @@ function filtrarRaw(){
   });
 }
 
-function agrupar(raw,keys,val='COMPRAS'){
-  const res={};
-  raw.forEach(r=>{
-    const k=keys.map(k=>r[k]).join('|');
-    if(!res[k])res[k]={...Object.fromEntries(keys.map(k=>[k,r[k]])),val:0,ventas:0};
-    res[k].val+=r[val]||0;
-    res[k].ventas+=r.VENTAS||0;
+function filtrarPorPeriodo(raw, periodo){
+  const {meses25, meses26, modo}=periodo;
+  if(modo==='solo2025') return raw.filter(r=>r.AÑO===2025);
+  if(modo==='solo2026') return raw.filter(r=>r.AÑO===2026);
+  // Comparativa: filtrar cada año por sus meses comparables
+  return raw.filter(r=>{
+    if(r.AÑO===2025) return meses25.includes(r.MES);
+    if(r.AÑO===2026) return meses26.includes(r.MES);
+    return false;
   });
-  return Object.values(res);
+}
+
+function resetFiltros(){
+  // Resetear multiselects
+  ['restaurante','proveedor'].forEach(key=>{
+    MS_ALL[key]=true;
+    document.getElementById('all-'+key).checked=true;
+    document.querySelectorAll(`#items-${key} input[type=checkbox]`).forEach(c=>c.checked=true);
+    updateMSBtn(key);
+  });
+  ['f-familia','f-tipo','f-mes','f-año'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  renderAll();
+}
+
+function aplicarUmbrales(){
+  UMBRALES.verde=parseFloat(document.getElementById('umbral-verde').value)||30;
+  UMBRALES.amarillo_max=parseFloat(document.getElementById('umbral-rojo').value)||38;
+  document.getElementById('umbral-amarillo-min').value=UMBRALES.verde;
+  document.getElementById('umbral-amarillo-max').value=UMBRALES.amarillo_max;
+  renderTablaFoodCost();
+  renderFoodCostMensual();
+  renderKPIs();
+}
+
+document.getElementById('umbral-verde').addEventListener('change',()=>{
+  document.getElementById('umbral-amarillo-min').value=document.getElementById('umbral-verde').value;
+});
+document.getElementById('umbral-rojo').addEventListener('change',()=>{
+  document.getElementById('umbral-amarillo-max').value=document.getElementById('umbral-rojo').value;
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// AVISO Y BADGE PERÍODO
+// ═══════════════════════════════════════════════════════════════════════
+function actualizarAvisoPeriodo(raw){
+  const f=getFiltros();
+  const aviso=document.getElementById('aviso-periodo');
+  const badge=document.getElementById('badge-periodo');
+  const periodo=getPeriodoComparable(raw);
+
+  if(periodo.modo==='solo2025'){
+    aviso.style.display='none';
+    badge.textContent='Año completo 2025';
+    return periodo;
+  }
+  if(periodo.modo==='solo2026'){
+    aviso.style.display='none';
+    badge.textContent='2026 (datos disponibles)';
+    return periodo;
+  }
+
+  // Modo comparativa
+  const meses=periodo.meses26;
+  if(!meses||meses.length===0){
+    badge.textContent='Sin datos 2026';
+    aviso.style.display='none';
+    return periodo;
+  }
+  const mesMin=MESES[meses[0]-1], mesMax=MESES[meses[meses.length-1]-1];
+  const rangoStr=meses.length===1?mesMin:`${mesMin}–${mesMax}`;
+  badge.textContent=`Comparativa ${rangoStr} 2025 vs 2026`;
+
+  aviso.style.display='flex';
+  document.getElementById('aviso-texto').textContent=
+    `Comparativa en período equivalente: ${rangoStr} 2025 vs ${rangoStr} 2026. Para ver el año completo 2025, selecciona "Solo 2025" en el filtro de año.`;
+
+  return periodo;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
 // KPIs
 // ═══════════════════════════════════════════════════════════════════════
 function renderKPIs(){
-  const raw=filtrarRaw();
-  const f=getFiltros();
-  
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const raw=filtrarPorPeriodo(rawAll, periodo);
+
+  const deducVentas=(rows)=>{
+    const vm={};
+    rows.forEach(r=>{const k=`${r.RESTAURANTE}|${r.AÑO}|${r.MES}`;if(!vm[k])vm[k]=r.VENTAS||0;});
+    return Object.values(vm).reduce((s,v)=>s+v,0);
+  };
+
   const calc=(año)=>{
-    const d=raw.filter(r=>!año||r.AÑO===año);
+    const d=raw.filter(r=>r.AÑO===año);
     const compras=d.reduce((s,r)=>s+r.COMPRAS,0);
-    // Ventas: deduplicar por restaurante+año+mes para evitar multiplicación
-    const ventasMap={};
-    d.forEach(r=>{
-      const key=`${r.RESTAURANTE}|${r.AÑO}|${r.MES}`;
-      if(!ventasMap[key])ventasMap[key]=r.VENTAS||0;
-    });
-    const ventas=Object.values(ventasMap).reduce((s,v)=>s+v,0);
+    const ventas=deducVentas(d);
     const fc=ventas>0?compras/ventas*100:null;
     return{compras,ventas,fc};
   };
-  
-  const k25=calc(2025), k26=calc(2026);
+
+  const f=getFiltros();
+  const k25=f.año==='2026'?{compras:0,ventas:0,fc:null}:calc(2025);
+  const k26=f.año==='2025'?{compras:0,ventas:0,fc:null}:calc(2026);
+
   const varCompras=k25.compras>0&&k26.compras>0?((k26.compras-k25.compras)/k25.compras*100):null;
   const varFC=k25.fc&&k26.fc?(k26.fc-k25.fc):null;
-  
-  // Total registros
-  const nReg=raw.length;
-  document.getElementById('info-filtro').textContent=`${nReg.toLocaleString()} registros · ${fmt(k25.compras+k26.compras)}`;
-  
-  const fcClass=(fc)=>{
-    if(!fc)return'';
-    if(fc<UMBRALES.verde)return'verde';
-    if(fc<=UMBRALES.amarillo_max)return'amarillo';
-    return'rojo';
-  };
-  
-  const html=`
-    <div class="kpi-card c25">
+
+  document.getElementById('info-filtro').textContent=`${rawAll.length.toLocaleString()} registros`;
+
+  const fcClass=(fc)=>{if(!fc)return'';if(fc<UMBRALES.verde)return'verde';if(fc<=UMBRALES.amarillo_max)return'amarillo';return'rojo';};
+
+  let html='';
+  if(f.año!=='2026'){
+    html+=`<div class="kpi-card c25">
       <div class="kpi-label">Compras 2025</div>
       <div class="kpi-val">${fmt(k25.compras)}</div>
       <div class="kpi-sub">Gasto neto sin internos</div>
-    </div>
-    <div class="kpi-card c26">
+    </div>`;
+  }
+  if(f.año!=='2025'){
+    html+=`<div class="kpi-card c26">
       <div class="kpi-label">Compras 2026</div>
       <div class="kpi-val">${fmt(k26.compras)}</div>
-      <div class="kpi-sub">Ene–Mar 2026</div>
-      <div class="kpi-var ${varCompras>0?'up':'down'}">${varCompras!==null?(varCompras>0?'▲':'▼')+' '+Math.abs(varCompras).toFixed(1)+'% vs 2025':''}</div>
-    </div>
-    <div class="kpi-card" style="border-left-color:#10b981">
+      <div class="kpi-sub">Período comparable</div>
+      ${varCompras!==null?`<div class="kpi-var ${varCompras>0?'up':'down'}">${varCompras>0?'▲':'▼'} ${Math.abs(varCompras).toFixed(1)}% vs 2025</div>`:''}
+    </div>`;
+  }
+  if(f.año!=='2026'){
+    html+=`<div class="kpi-card" style="border-left-color:#10b981">
       <div class="kpi-label">Ventas 2025</div>
       <div class="kpi-val">${fmt(k25.ventas)}</div>
       <div class="kpi-sub">Ingresos totales</div>
-    </div>
-    <div class="kpi-card" style="border-left-color:#8b5cf6">
+    </div>`;
+  }
+  if(f.año!=='2025'){
+    html+=`<div class="kpi-card" style="border-left-color:#8b5cf6">
       <div class="kpi-label">Ventas 2026</div>
       <div class="kpi-val">${fmt(k26.ventas)}</div>
-      <div class="kpi-sub">Ene–Mar 2026</div>
-    </div>
-    <div class="kpi-card ${fcClass(k25.fc)}">
+      <div class="kpi-sub">Período comparable</div>
+    </div>`;
+  }
+  if(f.año!=='2026'){
+    html+=`<div class="kpi-card ${fcClass(k25.fc)}">
       <div class="kpi-label">Food Cost 2025</div>
       <div class="kpi-val">${k25.fc?k25.fc.toFixed(1)+'%':'—'}</div>
       <div class="kpi-sub">Compras / Ventas</div>
-    </div>
-    <div class="kpi-card ${fcClass(k26.fc)}">
+    </div>`;
+  }
+  if(f.año!=='2025'){
+    html+=`<div class="kpi-card ${fcClass(k26.fc)}">
       <div class="kpi-label">Food Cost 2026</div>
       <div class="kpi-val">${k26.fc?k26.fc.toFixed(1)+'%':'—'}</div>
-      <div class="kpi-sub">Ene–Mar 2026</div>
-      <div class="kpi-var ${varFC>0?'up':'down'}">${varFC!==null?(varFC>0?'▲':'▼')+' '+Math.abs(varFC).toFixed(1)+'pp vs 2025':''}</div>
-    </div>
-  `;
+      <div class="kpi-sub">Período comparable</div>
+      ${varFC!==null?`<div class="kpi-var ${varFC>0?'up':'down'}">${varFC>0?'▲':'▼'} ${Math.abs(varFC).toFixed(1)}pp vs 2025</div>`:''}
+    </div>`;
+  }
   document.getElementById('kpis-grid').innerHTML=html;
 }
 
@@ -560,13 +748,26 @@ function renderKPIs(){
 // GRÁFICO: EVOLUCIÓN MENSUAL
 // ═══════════════════════════════════════════════════════════════════════
 function renderMensual(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
+
   const d25=[],d26=[];
   for(let m=1;m<=12;m++){
-    d25.push(raw.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
-    d26.push(raw.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
+    const v25=rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0);
+    const v26=rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0);
+
+    if(f.año==='2025'){
+      d25.push(v25); d26.push(null);
+    } else if(f.año==='2026'){
+      d25.push(null); d26.push(v26);
+    } else {
+      // Comparativa: 2025 solo en meses comparables, 2026 solo en meses disponibles
+      d25.push(periodo.meses25&&periodo.meses25.includes(m)?v25:null);
+      d26.push(periodo.meses26&&periodo.meses26.includes(m)?v26:null);
+    }
   }
-  
+
   const ctx=document.getElementById('chart-mensual').getContext('2d');
   if(CHARTS.mensual)CHARTS.mensual.destroy();
   CHARTS.mensual=new Chart(ctx,{
@@ -590,24 +791,37 @@ function renderMensual(){
 // GRÁFICO: FOOD COST MENSUAL
 // ═══════════════════════════════════════════════════════════════════════
 function renderFoodCostMensual(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
   const fc25=[],fc26=[];
-  const deducVentas=(rows)=>{
+
+  const deducVentasMes=(rows,mes)=>{
     const vm={};
-    rows.forEach(r=>{const k=`${r.RESTAURANTE}|${r.MES}`;if(!vm[k])vm[k]=r.VENTAS||0;});
+    rows.filter(r=>r.MES===mes).forEach(r=>{const k=`${r.RESTAURANTE}`;if(!vm[k])vm[k]=r.VENTAS||0;});
     return Object.values(vm).reduce((s,v)=>s+v,0);
   };
+
   for(let m=1;m<=12;m++){
-    const r25=raw.filter(r=>r.AÑO===2025&&r.MES===m);
-    const r26=raw.filter(r=>r.AÑO===2026&&r.MES===m);
+    const r25=rawAll.filter(r=>r.AÑO===2025&&r.MES===m);
+    const r26=rawAll.filter(r=>r.AÑO===2026&&r.MES===m);
     const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
-    const v25=deducVentas(r25);
+    const v25=deducVentasMes(rawAll.filter(r=>r.AÑO===2025),m);
     const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
-    const v26=deducVentas(r26);
-    fc25.push(v25>0?parseFloat((c25/v25*100).toFixed(1)):null);
-    fc26.push(v26>0?parseFloat((c26/v26*100).toFixed(1)):null);
+    const v26=deducVentasMes(rawAll.filter(r=>r.AÑO===2026),m);
+
+    if(f.año==='2025'){
+      fc25.push(v25>0?parseFloat((c25/v25*100).toFixed(1)):null);
+      fc26.push(null);
+    } else if(f.año==='2026'){
+      fc25.push(null);
+      fc26.push(v26>0?parseFloat((c26/v26*100).toFixed(1)):null);
+    } else {
+      fc25.push((periodo.meses25&&periodo.meses25.includes(m)&&v25>0)?parseFloat((c25/v25*100).toFixed(1)):null);
+      fc26.push((periodo.meses26&&periodo.meses26.includes(m)&&v26>0)?parseFloat((c26/v26*100).toFixed(1)):null);
+    }
   }
-  
+
   const ctx=document.getElementById('chart-foodcost-mensual').getContext('2d');
   if(CHARTS.fcMensual)CHARTS.fcMensual.destroy();
   CHARTS.fcMensual=new Chart(ctx,{
@@ -615,21 +829,17 @@ function renderFoodCostMensual(){
     data:{
       labels:MESES,
       datasets:[
-        {label:'FC 2025',data:fc25,borderColor:C25,backgroundColor:C25_A,fill:true,tension:.3,pointRadius:4,pointBackgroundColor:fc25.map(v=>v===null?'transparent':v<UMBRALES.verde?'#22c55e':v<=UMBRALES.amarillo_max?'#f59e0b':'#ef4444'),pointRadius:5},
-        {label:'FC 2026',data:fc26,borderColor:C26,backgroundColor:C26_A,fill:true,tension:.3,pointRadius:4,pointBackgroundColor:fc26.map(v=>v===null?'transparent':v<UMBRALES.verde?'#22c55e':v<=UMBRALES.amarillo_max?'#f59e0b':'#ef4444'),pointRadius:5}
+        {label:'FC 2025',data:fc25,borderColor:C25,backgroundColor:C25_A,fill:true,tension:.3,
+          pointBackgroundColor:fc25.map(v=>v===null?'transparent':v<UMBRALES.verde?'#22c55e':v<=UMBRALES.amarillo_max?'#f59e0b':'#ef4444'),
+          pointRadius:fc25.map(v=>v===null?0:5)},
+        {label:'FC 2026',data:fc26,borderColor:C26,backgroundColor:C26_A,fill:true,tension:.3,
+          pointBackgroundColor:fc26.map(v=>v===null?'transparent':v<UMBRALES.verde?'#22c55e':v<=UMBRALES.amarillo_max?'#f59e0b':'#ef4444'),
+          pointRadius:fc26.map(v=>v===null?0:5)}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw!==null?c.raw.toFixed(1)+'%':'—'}`}},
-        datalabels:{display:false},
-        annotation:{annotations:{
-          lineVerde:{type:'line',yMin:UMBRALES.verde,yMax:UMBRALES.verde,borderColor:'#22c55e',borderWidth:1,borderDash:[4,4]},
-          lineRojo:{type:'line',yMin:UMBRALES.amarillo_max,yMax:UMBRALES.amarillo_max,borderColor:'#ef4444',borderWidth:1,borderDash:[4,4]}
-        }}
-      },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw!==null?c.raw.toFixed(1)+'%':'—'}`}},datalabels:{display:false}},
       scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'#f1f5f9'},min:0},x:{grid:{display:false}}}
     }
   });
@@ -639,17 +849,30 @@ function renderFoodCostMensual(){
 // GRÁFICO: RESTAURANTES
 // ═══════════════════════════════════════════════════════════════════════
 function renderRestaurantes(){
-  const raw=filtrarRaw();
-  const rests=[...new Set(raw.map(r=>r.RESTAURANTE))].sort();
-  const d25=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025).reduce((s,x)=>s+x.COMPRAS,0));
-  const d26=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026).reduce((s,x)=>s+x.COMPRAS,0));
-  
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
+
+  // Obtener TODOS los restaurantes del dataset completo (no solo los filtrados)
+  const todosRests=[...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+
+  const raw25=filtrarPorPeriodo(rawAll,{...periodo, modo: f.año==='2026'?'solo2026': (periodo.modo==='solo2025'?'solo2025':'comparativa')});
+  const raw26=filtrarPorPeriodo(rawAll,{...periodo, modo: f.año==='2025'?'solo2025': (periodo.modo==='solo2026'?'solo2026':'comparativa')});
+
+  const d25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(periodo.modo==='solo2025'||!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const d26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(periodo.modo==='solo2026'||!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+
+  // Altura dinámica según número de restaurantes
+  const h=Math.max(400, todosRests.length*55);
+  document.querySelector('#chart-restaurantes').style.maxHeight=h+'px';
+  document.querySelector('#chart-restaurantes').parentElement.style.minHeight=h+'px';
+
   const ctx=document.getElementById('chart-restaurantes').getContext('2d');
   if(CHARTS.restaurantes)CHARTS.restaurantes.destroy();
   CHARTS.restaurantes=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:rests.map(r=>r.replace('RESTAURANTE ','').replace('ALCOBA ','ALC.')),
+      labels:todosRests.map(r=>r.replace('RESTAURANTE ','').replace('COCINA CENTRAL ','CC ')),
       datasets:[
         {label:'2025',data:d25,backgroundColor:C25+'99',borderColor:C25,borderWidth:1.5,borderRadius:4},
         {label:'2026',data:d26,backgroundColor:C26+'99',borderColor:C26,borderWidth:1.5,borderRadius:4}
@@ -657,8 +880,12 @@ function renderRestaurantes(){
     },
     options:{
       indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},datalabels:{display:false}},
-      scales:{x:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},y:{grid:{display:false}}}
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},
+        datalabels:{display:false}
+      },
+      scales:{x:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:10}},grid:{display:false}}}
     }
   });
 }
@@ -667,30 +894,62 @@ function renderRestaurantes(){
 // GRÁFICO: VENTAS VS COMPRAS
 // ═══════════════════════════════════════════════════════════════════════
 function renderVentasCompras(){
-  const raw=filtrarRaw();
-  const rests=[...new Set(raw.map(r=>r.RESTAURANTE))].sort();
-  const c25=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025).reduce((s,x)=>s+x.COMPRAS,0));
-  const v25=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025).reduce((s,x)=>s+x.VENTAS,0));
-  const c26=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026).reduce((s,x)=>s+x.COMPRAS,0));
-  const v26=rests.map(r=>raw.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026).reduce((s,x)=>s+x.VENTAS,0));
-  
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
+
+  const todosRests=[...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+
+  const deducVentasRest=(rows,rest)=>{
+    const vm={};
+    rows.filter(r=>r.RESTAURANTE===rest).forEach(r=>{
+      const k=`${r.MES}`;if(!vm[k])vm[k]=r.VENTAS||0;
+    });
+    return Object.values(vm).reduce((s,v)=>s+v,0);
+  };
+
+  const c25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const v25=todosRests.map(r=>{
+    const rows=rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(x.MES)));
+    return deducVentasRest(rows,r);
+  });
+  const c26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const v26=todosRests.map(r=>{
+    const rows=rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(x.MES)));
+    return deducVentasRest(rows,r);
+  });
+
+  const h=Math.max(400, todosRests.length*55);
+  document.querySelector('#chart-ventas-compras').style.maxHeight=h+'px';
+  document.querySelector('#chart-ventas-compras').parentElement.style.minHeight=h+'px';
+
   const ctx=document.getElementById('chart-ventas-compras').getContext('2d');
   if(CHARTS.ventasCompras)CHARTS.ventasCompras.destroy();
+
+  const datasets=[];
+  if(f.año!=='2026'){
+    datasets.push({label:'Ventas 2025',data:v25,backgroundColor:'#10b98133',borderColor:'#10b981',borderWidth:1.5,borderRadius:4});
+    datasets.push({label:'Compras 2025',data:c25,backgroundColor:C25+'99',borderColor:C25,borderWidth:1.5,borderRadius:4});
+  }
+  if(f.año!=='2025'){
+    datasets.push({label:'Ventas 2026',data:v26,backgroundColor:'#8b5cf633',borderColor:'#8b5cf6',borderWidth:1.5,borderRadius:4});
+    datasets.push({label:'Compras 2026',data:c26,backgroundColor:C26+'99',borderColor:C26,borderWidth:1.5,borderRadius:4});
+  }
+
   CHARTS.ventasCompras=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:rests.map(r=>r.replace('RESTAURANTE ','').replace('ALCOBA ','ALC.')),
-      datasets:[
-        {label:'Ventas 2025',data:v25,backgroundColor:'#10b98133',borderColor:'#10b981',borderWidth:1.5,borderRadius:4},
-        {label:'Compras 2025',data:c25,backgroundColor:C25+'99',borderColor:C25,borderWidth:1.5,borderRadius:4},
-        {label:'Ventas 2026',data:v26,backgroundColor:'#8b5cf633',borderColor:'#8b5cf6',borderWidth:1.5,borderRadius:4},
-        {label:'Compras 2026',data:c26,backgroundColor:C26+'99',borderColor:C26,borderWidth:1.5,borderRadius:4}
-      ]
+      labels:todosRests.map(r=>r.replace('RESTAURANTE ','').replace('COCINA CENTRAL ','CC ')),
+      datasets
     },
     options:{
       indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},datalabels:{display:false}},
-      scales:{x:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},y:{grid:{display:false}}}
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},
+        datalabels:{display:false}
+      },
+      scales:{x:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:10}},grid:{display:false}}}
     }
   });
 }
@@ -699,18 +958,22 @@ function renderVentasCompras(){
 // TABLA FOOD COST
 // ═══════════════════════════════════════════════════════════════════════
 function renderTablaFoodCost(){
-  const raw=filtrarRaw();
-  const rests=[...new Set(raw.map(r=>r.RESTAURANTE))].sort();
-  
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
+
+  const todosRests=[...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+
   const deducVentasR=(rows)=>{
     const vm={};
     rows.forEach(r=>{const k=`${r.RESTAURANTE}|${r.MES}`;if(!vm[k])vm[k]=r.VENTAS||0;});
     return Object.values(vm).reduce((s,v)=>s+v,0);
   };
+
   let html='';
-  rests.forEach(rest=>{
-    const r25=raw.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025);
-    const r26=raw.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026);
+  todosRests.forEach(rest=>{
+    const r25=rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
+    const r26=rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
     const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
     const v25=deducVentasR(r25);
     const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
@@ -719,11 +982,15 @@ function renderTablaFoodCost(){
     const fc26=v26>0?c26/v26*100:null;
     const varC=c25>0&&c26>0?(c26-c25)/c25*100:null;
     const varFC=fc25&&fc26?fc26-fc25:null;
-    
+
     html+=`<tr>
       <td><strong>${rest}</strong></td>
-      <td>${fmt(c25)}</td><td>${fmt(v25)}</td><td>${semaforo(fc25)}</td>
-      <td>${fmt(c26)}</td><td>${fmt(v26)}</td><td>${semaforo(fc26)}</td>
+      <td>${f.año==='2026'?'—':fmt(c25)}</td>
+      <td>${f.año==='2026'?'—':fmt(v25)}</td>
+      <td>${f.año==='2026'?'—':semaforo(fc25)}</td>
+      <td>${f.año==='2025'?'—':fmt(c26)}</td>
+      <td>${f.año==='2025'?'—':fmt(v26)}</td>
+      <td>${f.año==='2025'?'—':semaforo(fc26)}</td>
       <td>${fmtVar(varC,false)}</td>
       <td>${varFC!==null?`<span class="${varFC>0?'var-up':'var-down'}">${varFC>0?'▲':'▼'} ${Math.abs(varFC).toFixed(1)}pp</span>`:'—'}</td>
     </tr>`;
@@ -735,17 +1002,17 @@ function renderTablaFoodCost(){
 // GRÁFICO: PARETO PROVEEDORES
 // ═══════════════════════════════════════════════════════════════════════
 function renderPareto(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const raw=filtrarPorPeriodo(rawAll,periodo);
+
   const provMap={};
-  raw.forEach(r=>{
-    if(!provMap[r.PROVEEDOR])provMap[r.PROVEEDOR]=0;
-    provMap[r.PROVEEDOR]+=r.COMPRAS;
-  });
+  raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.COMPRAS;});
   const sorted=Object.entries(provMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   const total=sorted.reduce((s,x)=>s+x[1],0);
   let acum=0;
   const acumData=sorted.map(x=>{acum+=x[1]/total*100;return parseFloat(acum.toFixed(1));});
-  
+
   const ctx=document.getElementById('chart-pareto').getContext('2d');
   if(CHARTS.pareto)CHARTS.pareto.destroy();
   CHARTS.pareto=new Chart(ctx,{
@@ -759,7 +1026,7 @@ function renderPareto(){
     },
     options:{
       responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.datasetIndex===0?`${fmt(c.raw)}`:c.raw.toFixed(1)+'%'}},datalabels:{display:false}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.datasetIndex===0?fmt(c.raw):c.raw.toFixed(1)+'%'}},datalabels:{display:false}},
       scales:{
         y:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},
         y2:{position:'right',min:0,max:100,ticks:{callback:v=>v+'%'},grid:{display:false}},
@@ -773,22 +1040,23 @@ function renderPareto(){
 // GRÁFICO: FAMILIAS
 // ═══════════════════════════════════════════════════════════════════════
 function renderFamilias(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
   const famMap25={},famMap26={};
-  raw.forEach(r=>{
-    if(r.AÑO===2025){famMap25[r.FAMILIA]=(famMap25[r.FAMILIA]||0)+r.COMPRAS;}
-    else{famMap26[r.FAMILIA]=(famMap26[r.FAMILIA]||0)+r.COMPRAS;}
+  rawAll.forEach(r=>{
+    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES))){famMap25[r.FAMILIA]=(famMap25[r.FAMILIA]||0)+r.COMPRAS;}
+    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES))){famMap26[r.FAMILIA]=(famMap26[r.FAMILIA]||0)+r.COMPRAS;}
   });
-  const fams=[...new Set([...Object.keys(famMap25),...Object.keys(famMap26)])].sort();
+  const fams=[...new Set([...Object.keys(famMap25),...Object.keys(famMap26)])].sort((a,b)=>(famMap25[b]||0)+(famMap26[b]||0)-(famMap25[a]||0)-(famMap26[a]||0));
   const d25=fams.map(f=>famMap25[f]||0);
   const d26=fams.map(f=>famMap26[f]||0);
-  
+
   const ctx=document.getElementById('chart-familias').getContext('2d');
   if(CHARTS.familias)CHARTS.familias.destroy();
   CHARTS.familias=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:fams.map(f=>f.length>20?f.substring(0,20)+'…':f),
+      labels:fams.map(f=>f.length>22?f.substring(0,22)+'…':f),
       datasets:[
         {label:'2025',data:d25,backgroundColor:C25+'99',borderColor:C25,borderWidth:1.5,borderRadius:4},
         {label:'2026',data:d26,backgroundColor:C26+'99',borderColor:C26,borderWidth:1.5,borderRadius:4}
@@ -806,21 +1074,25 @@ function renderFamilias(){
 // GRÁFICO: TIPOS
 // ═══════════════════════════════════════════════════════════════════════
 function renderTipos(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
   const tipoMap={};
-  raw.forEach(r=>{
+  rawAll.forEach(r=>{
     if(!tipoMap[r.TIPO])tipoMap[r.TIPO]={c25:0,c26:0};
-    if(r.AÑO===2025)tipoMap[r.TIPO].c25+=r.COMPRAS;
-    else tipoMap[r.TIPO].c26+=r.COMPRAS;
+    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES)))tipoMap[r.TIPO].c25+=r.COMPRAS;
+    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES)))tipoMap[r.TIPO].c26+=r.COMPRAS;
   });
   const sorted=Object.entries(tipoMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26)).slice(0,15);
-  
+
+  const h=Math.max(300, sorted.length*28);
+  document.querySelector('#chart-tipos').style.maxHeight=h+'px';
+
   const ctx=document.getElementById('chart-tipos').getContext('2d');
   if(CHARTS.tipos)CHARTS.tipos.destroy();
   CHARTS.tipos=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:sorted.map(x=>x[0].length>25?x[0].substring(0,25)+'…':x[0]),
+      labels:sorted.map(x=>x[0].length>28?x[0].substring(0,28)+'…':x[0]),
       datasets:[
         {label:'2025',data:sorted.map(x=>x[1].c25),backgroundColor:C25+'99',borderColor:C25,borderWidth:1.5,borderRadius:4},
         {label:'2026',data:sorted.map(x=>x[1].c26),backgroundColor:C26+'99',borderColor:C26,borderWidth:1.5,borderRadius:4}
@@ -842,10 +1114,10 @@ function initTabsProveedores(){
   const provMap={};
   raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.COMPRAS;});
   const top6=Object.entries(provMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]);
-  
+
   const tabsEl=document.getElementById('tabs-prov');
-  tabsEl.innerHTML=top6.map((p,i)=>`<button class="tab-btn${i===0?' active':''}" onclick="selectProv('${p}',this)">${p.length>15?p.substring(0,15)+'…':p}</button>`).join('');
-  
+  tabsEl.innerHTML=top6.map((p,i)=>`<button class="tab-btn${i===0?' active':''}" onclick="selectProv('${p.replace(/'/g,"\\'")}',this)">${p.length>14?p.substring(0,14)+'…':p}</button>`).join('');
+
   PROV_ACTIVO=top6[0];
   renderProvEvol();
 }
@@ -859,13 +1131,15 @@ function selectProv(prov,btn){
 
 function renderProvEvol(){
   if(!PROV_ACTIVO)return;
-  const raw=filtrarRaw().filter(r=>r.PROVEEDOR===PROV_ACTIVO);
+  const rawAll=filtrarRaw().filter(r=>r.PROVEEDOR===PROV_ACTIVO);
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
   const d25=[],d26=[];
   for(let m=1;m<=12;m++){
-    d25.push(raw.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
-    d26.push(raw.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
+    d25.push(rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
+    d26.push(rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
   }
-  
+
   const ctx=document.getElementById('chart-prov-evol').getContext('2d');
   if(CHARTS.provEvol)CHARTS.provEvol.destroy();
   CHARTS.provEvol=new Chart(ctx,{
@@ -889,18 +1163,21 @@ function renderProvEvol(){
 // TABLA PROVEEDORES
 // ═══════════════════════════════════════════════════════════════════════
 function renderTablaProveedores(){
-  const raw=filtrarRaw();
+  const rawAll=filtrarRaw();
+  const periodo=getPeriodoComparable(rawAll);
+  const f=getFiltros();
+
   const provMap={};
-  raw.forEach(r=>{
-    if(!provMap[r.PROVEEDOR])provMap[r.PROVEEDOR]={c25:0,c26:0,rests:new Set(),prods:new Set()};
-    if(r.AÑO===2025)provMap[r.PROVEEDOR].c25+=r.COMPRAS;
-    else provMap[r.PROVEEDOR].c26+=r.COMPRAS;
+  rawAll.forEach(r=>{
+    if(!provMap[r.PROVEEDOR])provMap[r.PROVEEDOR]={c25:0,c26:0,rests:new Set()};
+    if(r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)))provMap[r.PROVEEDOR].c25+=r.COMPRAS;
+    if(r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)))provMap[r.PROVEEDOR].c26+=r.COMPRAS;
     provMap[r.PROVEEDOR].rests.add(r.RESTAURANTE);
   });
-  
+
   const total=Object.values(provMap).reduce((s,x)=>s+x.c25+x.c26,0);
   const sorted=Object.entries(provMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26));
-  
+
   let acum=0,html='';
   sorted.forEach(([prov,d],i)=>{
     const tot=d.c25+d.c26;
@@ -911,13 +1188,12 @@ function renderTablaProveedores(){
     html+=`<tr>
       <td style="color:var(--texto2)">${i+1}</td>
       <td><strong>${prov}</strong></td>
-      <td>${fmt(d.c25)}</td>
-      <td>${fmt(d.c26)}</td>
+      <td>${f.año==='2026'?'—':fmt(d.c25)}</td>
+      <td>${f.año==='2025'?'—':fmt(d.c26)}</td>
       <td>${fmtVar(var_,false)}</td>
       <td><div style="display:flex;align-items:center;gap:4px"><div class="bar-mini" style="width:${barW}px"></div>${pct.toFixed(1)}%</div></td>
       <td>${acum.toFixed(1)}%</td>
       <td style="text-align:center">${d.rests.size}</td>
-      <td style="text-align:center">—</td>
     </tr>`;
   });
   document.getElementById('tbody-proveedores').innerHTML=html;
@@ -927,12 +1203,11 @@ function renderTablaProveedores(){
 // TABLA PRODUCTOS
 // ═══════════════════════════════════════════════════════════════════════
 function renderTablaProductos(){
-  // Usar datos pre-calculados de DATA.productos filtrados por los filtros activos
   const f=getFiltros();
   let prods=DATA.productos;
   if(f.familia)prods=prods.filter(p=>p.familia===f.familia);
   if(f.tipo)prods=prods.filter(p=>p.tipo===f.tipo);
-  
+
   let html='';
   prods.slice(0,30).forEach((p,i)=>{
     const alertaPrecio=p.var_precio_pct&&Math.abs(p.var_precio_pct)>15;
@@ -957,6 +1232,8 @@ function renderTablaProductos(){
 // RENDER ALL
 // ═══════════════════════════════════════════════════════════════════════
 function renderAll(){
+  const rawAll=filtrarRaw();
+  actualizarAvisoPeriodo(rawAll);
   renderKPIs();
   renderMensual();
   renderFoodCostMensual();
@@ -976,21 +1253,25 @@ function renderAll(){
 // ═══════════════════════════════════════════════════════════════════════
 function poblarFiltros(){
   const f=DATA.filtros;
-  const add=(id,items)=>{
+
+  // Multiselects
+  buildMS('restaurante', f.restaurantes);
+  buildMS('proveedor', f.proveedores);
+
+  // Selects normales
+  const addOpts=(id,items)=>{
     const sel=document.getElementById(id);
     items.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
   };
-  add('f-restaurante',f.restaurantes);
-  add('f-proveedor',f.proveedores);
-  add('f-familia',f.familias);
-  add('f-tipo',f.tipos);
+  addOpts('f-familia', f.familias);
+  addOpts('f-tipo', f.tipos);
   MESES.forEach((m,i)=>{
     const o=document.createElement('option');o.value=i+1;o.textContent=m;
     document.getElementById('f-mes').appendChild(o);
   });
-  
-  // Eventos
-  ['f-restaurante','f-proveedor','f-familia','f-tipo','f-mes','f-año'].forEach(id=>{
+
+  // Eventos selects normales
+  ['f-familia','f-tipo','f-mes','f-año'].forEach(id=>{
     document.getElementById(id).addEventListener('change',renderAll);
   });
 }
@@ -1003,7 +1284,7 @@ fetch('data.json')
     renderAll();
   })
   .catch(e=>{
-    document.getElementById('kpis-grid').innerHTML='<div class="loading">Error cargando datos. Asegúrate de abrir con un servidor web.</div>';
+    document.getElementById('kpis-grid').innerHTML='<div class="loading">⚠️ Error cargando datos. Abre con un servidor web (python -m http.server 8080)</div>';
     console.error(e);
   });
 </script>
