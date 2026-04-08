@@ -126,6 +126,36 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 ::-webkit-scrollbar-track{background:#f1f5f9}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 .loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--texto2);font-size:14px}
+
+/* DETALLE PRODUCTO DESPLEGABLE */
+.prod-row-clickable{cursor:pointer;transition:background .15s}
+.prod-row-clickable:hover td{background:#f0f9ff!important}
+.prod-row-clickable td:first-child::before{content:'▶ ';font-size:9px;color:var(--azul2);transition:transform .2s}
+.prod-row-clickable.open td:first-child::before{content:'▼ ';}
+.prod-detail-row{display:none}
+.prod-detail-row.open{display:table-row}
+.prod-detail-cell{padding:0!important;border-bottom:2px solid var(--azul2)!important}
+.prod-detail-inner{background:#f8faff;padding:16px 20px;border-left:3px solid var(--azul2)}
+.prod-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.prod-detail-title{font-weight:700;font-size:12px;color:var(--azul2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.prod-prov-table{width:100%;border-collapse:collapse;font-size:11px}
+.prod-prov-table th{background:#e0e7ff;padding:5px 8px;text-align:left;font-weight:600;color:#3730a3}
+.prod-prov-table td{padding:5px 8px;border-bottom:1px solid #e0e7ff}
+.prod-prov-table tr:hover td{background:#eef2ff}
+.prod-detail-chart-wrap{position:relative;height:160px}
+
+/* CUENTA EXPLOTACIÓN MENSUAL */
+.explot-mensual-panel{background:#f8faff;border:1px solid #c7d2fe;border-radius:10px;padding:16px;margin-top:12px}
+.explot-rest-selector{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.explot-rest-selector label{font-weight:700;font-size:12px;color:var(--azul2)}
+.explot-rest-selector select{padding:6px 10px;border:1px solid var(--borde);border-radius:6px;font-size:12px;background:#fff}
+.explot-mes-table{width:100%;border-collapse:collapse;font-size:11px}
+.explot-mes-table th{padding:7px 10px;text-align:center;font-weight:700;border-bottom:2px solid var(--borde);white-space:nowrap}
+.explot-mes-table td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--borde)}
+.explot-mes-table td:first-child{text-align:left;font-weight:700}
+.explot-mes-table tr.total-row{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
+.explot-mes-table tr:hover td{background:#f0f9ff}
+.explot-chart-mes{position:relative;height:220px;margin-top:14px}
 </style>
 </head>
 <body>
@@ -361,6 +391,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     <div id="explot-chart-wrap" style="display:none">
       <div class="chart-wrap-tall"><canvas id="chart-explotacion"></canvas></div>
     </div>
+
+    <!-- DETALLE MENSUAL POR RESTAURANTE -->
+    <div class="explot-mensual-panel">
+      <div class="explot-rest-selector">
+        <label>📊 Detalle mensual por restaurante:</label>
+        <select id="sel-rest-mensual" onchange="renderExplotMensual()">
+          <option value="">Selecciona un restaurante...</option>
+        </select>
+        <span style="font-size:11px;color:var(--texto2)">Enero, Febrero y Marzo 2025 vs 2026</span>
+      </div>
+      <div id="explot-mensual-contenido" style="display:none">
+        <div style="overflow-x:auto">
+          <table class="explot-mes-table" id="tabla-explot-mensual">
+            <thead>
+              <tr>
+                <th style="text-align:left">Mes</th>
+                <th style="background:#eff6ff;color:#1e40af">Ventas 2025</th>
+                <th style="background:#eff6ff;color:#1e40af">Compras 2025</th>
+                <th style="background:#eff6ff;color:#1e40af">Margen 2025</th>
+                <th style="background:#eff6ff;color:#1e40af">FC% 2025</th>
+                <th style="background:#fff7ed;color:#9a3412">Ventas 2026</th>
+                <th style="background:#fff7ed;color:#9a3412">Compras 2026</th>
+                <th style="background:#fff7ed;color:#9a3412">Margen 2026</th>
+                <th style="background:#fff7ed;color:#9a3412">FC% 2026</th>
+                <th>Δ Ventas</th>
+                <th>Δ Compras</th>
+                <th>Δ FC</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-explot-mensual"></tbody>
+            <tfoot id="tfoot-explot-mensual"></tfoot>
+          </table>
+        </div>
+        <div class="explot-chart-mes"><canvas id="chart-explot-mensual"></canvas></div>
+      </div>
+    </div>
   </div>
 
   <!-- FILA 3: Proveedores Pareto + Familias -->
@@ -385,27 +451,31 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     </div>
   </div>
 
-  <!-- FILA 4: Tipos + Evolución proveedor -->
-  <div class="grid-2">
-    <div class="section">
-      <div class="section-header">
-        <div>
-          <div class="section-title"><span class="icon">📋</span>Compras por Tipo de Producto</div>
-          <div class="section-subtitle">Desglose dentro de cada familia · Top 15 tipos</div>
-        </div>
+  <!-- FILA 4: Tipos (ancho completo) -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title"><span class="icon">📋</span>Compras por Tipo de Producto</div>
+        <div class="section-subtitle">Desglose dentro de cada familia · Top 20 tipos · Comparativa 2025 vs 2026</div>
       </div>
-      <div class="chart-wrap-tall"><canvas id="chart-tipos"></canvas></div>
-    </div>
-    <div class="section">
-      <div class="section-header">
-        <div>
-          <div class="section-title"><span class="icon">📉</span>Evolución Mensual por Proveedor</div>
-          <div class="section-subtitle">Top 6 proveedores · Comparativa mensual 2025 vs 2026</div>
-        </div>
-        <div class="tabs" id="tabs-prov"></div>
+      <div class="leyenda-años">
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c25)"></div>2025</div>
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--c26)"></div>2026</div>
       </div>
-      <div class="chart-wrap"><canvas id="chart-prov-evol"></canvas></div>
     </div>
+    <div style="position:relative;height:520px"><canvas id="chart-tipos"></canvas></div>
+  </div>
+
+  <!-- FILA 4b: Evolución proveedor -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title"><span class="icon">📉</span>Evolución Mensual por Proveedor</div>
+        <div class="section-subtitle">Top 6 proveedores · Comparativa mensual 2025 vs 2026</div>
+      </div>
+      <div class="tabs" id="tabs-prov"></div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart-prov-evol"></canvas></div>
   </div>
 
   <!-- TABLA PROVEEDORES -->
@@ -436,11 +506,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     <div class="section-header">
       <div>
         <div class="section-title"><span class="icon">🥇</span>Top 30 Productos — Variación de Precio y Volumen</div>
-        <div class="section-subtitle">Comparativa mismo período · Alerta ⚠️ si variación precio &gt;15%</div>
+        <div class="section-subtitle">Comparativa mismo período · Alerta ⚠️ si variación precio &gt;15% · <strong>Haz clic en un producto</strong> para ver detalle por proveedor y evolución de precio</div>
       </div>
     </div>
     <div style="overflow-x:auto">
-      <table class="prod-table">
+      <table class="prod-table" id="tabla-productos">
         <thead>
           <tr>
             <th>#</th><th>Producto</th><th>Familia</th><th>Tipo</th><th>Ud.</th>
@@ -1140,10 +1210,9 @@ function renderTipos(){
     if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES)))tipoMap[r.TIPO].c25+=r.COMPRAS;
     if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES)))tipoMap[r.TIPO].c26+=r.COMPRAS;
   });
-  const sorted=Object.entries(tipoMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26)).slice(0,15);
+  const sorted=Object.entries(tipoMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26)).slice(0,20);
 
-  const h=Math.max(300, sorted.length*28);
-  document.querySelector('#chart-tipos').style.maxHeight=h+'px';
+  // El canvas ya tiene altura fija de 520px en el HTML
 
   const ctx=document.getElementById('chart-tipos').getContext('2d');
   if(CHARTS.tipos)CHARTS.tipos.destroy();
@@ -1258,33 +1327,35 @@ function renderTablaProveedores(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// TABLA PRODUCTOS (dinámica con período comparable)
+// TABLA PRODUCTOS (dinámica con período comparable + desplegable de detalle)
 // ═══════════════════════════════════════════════════════════════════════
+let PROD_CHARTS = {};
+let PROD_DATA_CACHE = {};
+
 function renderTablaProductos(){
   const f = getFiltros();
   const rawAll = filtrarRawProd();
   const periodo = getPeriodoComparable(filtrarRaw());
 
-  // Calcular compras por producto en el período comparable
   const prodMap = {};
   rawAll.forEach(r => {
     const key = r.PRODUCTO;
     if(!key) return;
     if(!prodMap[key]) prodMap[key] = {nombre:r.PRODUCTO, familia:r.FAMILIA, tipo:r.TIPO, unidad:r.UNIDAD,
-      c25:0, c26:0, qty25:0, qty26:0, imp25:0, imp26:0};
+      c25:0, c26:0, qty25:0, qty26:0};
     const inPeriod25 = r.AÑO===2025 && (f.año!=='2026') && (!periodo.meses25||periodo.meses25.includes(r.MES));
     const inPeriod26 = r.AÑO===2026 && (f.año!=='2025') && (!periodo.meses26||periodo.meses26.includes(r.MES));
-    if(inPeriod25){ prodMap[key].c25 += r.COMPRAS; prodMap[key].qty25 += r.CANTIDAD||0; prodMap[key].imp25 += r.COMPRAS; }
-    if(inPeriod26){ prodMap[key].c26 += r.COMPRAS; prodMap[key].qty26 += r.CANTIDAD||0; prodMap[key].imp26 += r.COMPRAS; }
+    if(inPeriod25){ prodMap[key].c25 += r.COMPRAS; prodMap[key].qty25 += r.CANTIDAD||0; }
+    if(inPeriod26){ prodMap[key].c26 += r.COMPRAS; prodMap[key].qty26 += r.CANTIDAD||0; }
   });
 
-  // Aplicar filtros de familia y tipo
   let prods = Object.values(prodMap);
   if(f.familia) prods = prods.filter(p=>p.familia===f.familia);
   if(f.tipo) prods = prods.filter(p=>p.tipo===f.tipo);
-
-  // Ordenar por gasto total (2025+2026)
   prods.sort((a,b) => (b.c25+b.c26) - (a.c25+a.c26));
+
+  // Guardar datos para el desplegable
+  PROD_DATA_CACHE = {rawAll, periodo, f};
 
   let html='';
   prods.slice(0,30).forEach((p,i)=>{
@@ -1293,7 +1364,10 @@ function renderTablaProductos(){
     const pm26 = p.qty26>0 ? p.c26/p.qty26 : null;
     const varP = pm25&&pm26 ? (pm26-pm25)/pm25*100 : null;
     const alertaPrecio = varP && Math.abs(varP)>15;
-    html+=`<tr style="${alertaPrecio?'background:#fff5f5':''}">
+    const rowId = 'prod-row-'+i;
+    const detId = 'prod-det-'+i;
+    const prodEsc = p.nombre.replace(/"/g,'&quot;').replace(/'/g,'\'');
+    html+=`<tr class="prod-row-clickable" id="${rowId}" onclick="toggleProdDetail('${prodEsc}','${rowId}','${detId}')" style="${alertaPrecio?'background:#fff5f5':''}">
       <td style="color:var(--texto2)">${i+1}</td>
       <td><strong>${p.nombre}</strong></td>
       <td><span style="font-size:10px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.familia||'—'}</span></td>
@@ -1305,9 +1379,108 @@ function renderTablaProductos(){
       <td>${pm25?pm25.toFixed(2)+' €':'—'}</td>
       <td>${pm26?pm26.toFixed(2)+' €':'—'}</td>
       <td>${alertaPrecio?`<span style="color:var(--rojo);font-weight:700">⚠️ ${fmtVar(varP,false)}</span>`:fmtVar(varP,false)}</td>
+    </tr>
+    <tr class="prod-detail-row" id="${detId}">
+      <td class="prod-detail-cell" colspan="11">
+        <div class="prod-detail-inner" id="inner-${detId}">Cargando detalle...</div>
+      </td>
     </tr>`;
   });
   document.getElementById('tbody-productos').innerHTML=html;
+}
+
+function toggleProdDetail(prodNombre, rowId, detId){
+  const row = document.getElementById(rowId);
+  const det = document.getElementById(detId);
+  const isOpen = det.classList.contains('open');
+
+  // Cerrar todos los abiertos
+  document.querySelectorAll('.prod-detail-row.open').forEach(r=>r.classList.remove('open'));
+  document.querySelectorAll('.prod-row-clickable.open').forEach(r=>r.classList.remove('open'));
+
+  if(!isOpen){
+    row.classList.add('open');
+    det.classList.add('open');
+    renderProdDetail(prodNombre, 'inner-'+detId);
+  }
+}
+
+function renderProdDetail(prodNombre, innerId){
+  const {rawAll, periodo, f} = PROD_DATA_CACHE;
+  const inner = document.getElementById(innerId);
+  if(!inner) return;
+
+  // Filtrar filas de este producto
+  const filas = rawAll.filter(r => r.PRODUCTO === prodNombre);
+
+  // Agrupar por proveedor
+  const provMap = {};
+  filas.forEach(r => {
+    const prov = r.PROVEEDOR||'Desconocido';
+    if(!provMap[prov]) provMap[prov] = {c25:0,c26:0,qty25:0,qty26:0};
+    const inP25 = r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES));
+    const inP26 = r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES));
+    if(inP25){provMap[prov].c25+=r.COMPRAS;provMap[prov].qty25+=r.CANTIDAD||0;}
+    if(inP26){provMap[prov].c26+=r.COMPRAS;provMap[prov].qty26+=r.CANTIDAD||0;}
+  });
+
+  const provSorted = Object.entries(provMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26));
+
+  let provHtml = `<table class="prod-prov-table">
+    <thead><tr><th>Proveedor</th><th>Compras 2025</th><th>Compras 2026</th><th>Var.</th><th>Precio Medio 2025</th><th>Precio Medio 2026</th><th>Var. Precio</th></tr></thead><tbody>`;
+  provSorted.forEach(([prov,d])=>{
+    const pm25 = d.qty25>0?d.c25/d.qty25:null;
+    const pm26 = d.qty26>0?d.c26/d.qty26:null;
+    const varC = d.c25>0&&d.c26>0?(d.c26-d.c25)/d.c25*100:null;
+    const varP = pm25&&pm26?(pm26-pm25)/pm25*100:null;
+    provHtml+=`<tr><td><strong>${prov}</strong></td><td>${f.año==='2026'?'—':fmt(d.c25)}</td><td>${f.año==='2025'?'—':fmt(d.c26)}</td><td>${fmtVar(varC,false)}</td><td>${pm25?pm25.toFixed(2)+' €':'—'}</td><td>${pm26?pm26.toFixed(2)+' €':'—'}</td><td>${fmtVar(varP,false)}</td></tr>`;
+  });
+  provHtml += '</tbody></table>';
+
+  // Agrupar por mes para evolución de precio
+  const mesMap25={}, mesMap26={};
+  filas.forEach(r=>{
+    if(r.AÑO===2025&&r.CANTIDAD>0){if(!mesMap25[r.MES])mesMap25[r.MES]={c:0,q:0};mesMap25[r.MES].c+=r.COMPRAS;mesMap25[r.MES].q+=r.CANTIDAD;}
+    if(r.AÑO===2026&&r.CANTIDAD>0){if(!mesMap26[r.MES])mesMap26[r.MES]={c:0,q:0};mesMap26[r.MES].c+=r.COMPRAS;mesMap26[r.MES].q+=r.CANTIDAD;}
+  });
+  const pm25arr=MESES.map((_,i)=>mesMap25[i+1]&&mesMap25[i+1].q>0?mesMap25[i+1].c/mesMap25[i+1].q:null);
+  const pm26arr=MESES.map((_,i)=>mesMap26[i+1]&&mesMap26[i+1].q>0?mesMap26[i+1].c/mesMap26[i+1].q:null);
+
+  const chartId = 'chart-pd-'+innerId;
+  inner.innerHTML = `
+    <div style="font-weight:700;font-size:13px;color:var(--azul2);margin-bottom:12px">🔍 Detalle: ${prodNombre}</div>
+    <div class="prod-detail-grid">
+      <div>
+        <div class="prod-detail-title">📦 Compras por proveedor (período comparable)</div>
+        ${provHtml}
+      </div>
+      <div>
+        <div class="prod-detail-title">📈 Evolución del precio medio mensual</div>
+        <div class="prod-detail-chart-wrap"><canvas id="${chartId}"></canvas></div>
+      </div>
+    </div>`;
+
+  // Renderizar gráfico de precio
+  setTimeout(()=>{
+    const ctx = document.getElementById(chartId);
+    if(!ctx) return;
+    if(PROD_CHARTS[chartId]) PROD_CHARTS[chartId].destroy();
+    PROD_CHARTS[chartId] = new Chart(ctx.getContext('2d'),{
+      type:'line',
+      data:{
+        labels:MESES,
+        datasets:[
+          {label:'Precio 2025',data:pm25arr,borderColor:C25,backgroundColor:C25_A,fill:true,tension:.3,pointRadius:4,spanGaps:true},
+          {label:'Precio 2026',data:pm26arr,borderColor:C26,backgroundColor:C26_A,fill:true,tension:.3,pointRadius:4,spanGaps:true}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>c.raw?`${c.dataset.label}: ${c.raw.toFixed(2)} €`:null}},datalabels:{display:false}},
+        scales:{y:{ticks:{callback:v=>v.toFixed(2)+' €'},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:9}},grid:{display:false}}}
+      }
+    });
+  },50);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1463,6 +1636,122 @@ function renderGraficoExplotacion(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// CUENTA EXPLOTACIÓN MENSUAL POR RESTAURANTE
+// ═══════════════════════════════════════════════════════════════════════
+let CHART_EXPLOT_MES = null;
+
+function poblarSelectorRestMensual(){
+  const sel = document.getElementById('sel-rest-mensual');
+  if(!sel || !DATA) return;
+  const rests = [...new Set(DATA.raw.map(r=>r.RESTAURANTE))].sort();
+  rests.forEach(r=>{
+    const o = document.createElement('option');
+    o.value = r; o.textContent = r;
+    sel.appendChild(o);
+  });
+}
+
+function renderExplotMensual(){
+  const sel = document.getElementById('sel-rest-mensual');
+  const rest = sel ? sel.value : '';
+  const contenido = document.getElementById('explot-mensual-contenido');
+  if(!rest){ if(contenido) contenido.style.display='none'; return; }
+  if(contenido) contenido.style.display='';
+
+  const rawAll = filtrarRaw();
+  const mesesDisp = [...new Set(DATA.raw.filter(r=>r.AÑO===2026).map(r=>r.MES))].sort((a,b)=>a-b);
+
+  const deducVentas = (rows) => {
+    const vm = {};
+    rows.forEach(r => { const k = `${r.RESTAURANTE}|${r.MES}`; if(!vm[k]) vm[k] = r.VENTAS||0; });
+    return Object.values(vm).reduce((s,v)=>s+v, 0);
+  };
+
+  let totV25=0,totC25=0,totV26=0,totC26=0;
+  let html='';
+  const labels25=[],labels26=[],dV25=[],dC25=[],dV26=[],dC26=[];
+
+  mesesDisp.forEach(mes=>{
+    const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&r.MES===mes);
+    const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&r.MES===mes);
+    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const v25=deducVentas(r25);
+    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const v26=deducVentas(r26);
+    const m25=v25-c25, m26=v26-c26;
+    const fc25=v25>0?c25/v25*100:null;
+    const fc26=v26>0?c26/v26*100:null;
+    const varV=v25>0&&v26>0?(v26-v25)/v25*100:null;
+    const varC=c25>0&&c26>0?(c26-c25)/c25*100:null;
+    const varFC=fc25&&fc26?fc26-fc25:null;
+    totV25+=v25;totC25+=c25;totV26+=v26;totC26+=c26;
+    labels25.push(MESES[mes-1]+' 25');labels26.push(MESES[mes-1]+' 26');
+    dV25.push(v25);dC25.push(c25);dV26.push(v26);dC26.push(c26);
+    html+=`<tr>
+      <td>${MESES[mes-1]}</td>
+      <td style="background:#eff6ff">${fmt(v25)||'—'}</td>
+      <td style="background:#eff6ff">${fmt(c25)||'—'}</td>
+      <td style="background:#eff6ff;color:${m25>=0?'#15803d':'#b91c1c'};font-weight:700">${fmt(m25)}</td>
+      <td style="background:#eff6ff">${semaforo(fc25)}</td>
+      <td style="background:#fff7ed">${fmt(v26)||'—'}</td>
+      <td style="background:#fff7ed">${fmt(c26)||'—'}</td>
+      <td style="background:#fff7ed;color:${m26>=0?'#15803d':'#b91c1c'};font-weight:700">${fmt(m26)}</td>
+      <td style="background:#fff7ed">${semaforo(fc26)}</td>
+      <td>${fmtVar(varV,false)}</td>
+      <td>${fmtVar(varC,false)}</td>
+      <td>${varFC!==null?`<span class="${varFC>0?'var-up':'var-down'}">${varFC>0?'▲':'▼'} ${Math.abs(varFC).toFixed(1)}pp</span>`:'—'}</td>
+    </tr>`;
+  });
+
+  document.getElementById('tbody-explot-mensual').innerHTML=html;
+
+  // Fila total
+  const totM25=totV25-totC25,totM26=totV26-totC26;
+  const totFC25=totV25>0?totC25/totV25*100:null;
+  const totFC26=totV26>0?totC26/totV26*100:null;
+  const tVarV=totV25>0&&totV26>0?(totV26-totV25)/totV25*100:null;
+  const tVarC=totC25>0&&totC26>0?(totC26-totC25)/totC25*100:null;
+  const tVarFC=totFC25&&totFC26?totFC26-totFC25:null;
+  document.getElementById('tfoot-explot-mensual').innerHTML=`<tr class="total-row">
+    <td>TOTAL</td>
+    <td style="background:#dbeafe">${fmt(totV25)}</td>
+    <td style="background:#dbeafe">${fmt(totC25)}</td>
+    <td style="background:#dbeafe;color:${totM25>=0?'#15803d':'#b91c1c'}">${fmt(totM25)}</td>
+    <td style="background:#dbeafe">${semaforo(totFC25)}</td>
+    <td style="background:#ffedd5">${fmt(totV26)}</td>
+    <td style="background:#ffedd5">${fmt(totC26)}</td>
+    <td style="background:#ffedd5;color:${totM26>=0?'#15803d':'#b91c1c'}">${fmt(totM26)}</td>
+    <td style="background:#ffedd5">${semaforo(totFC26)}</td>
+    <td>${fmtVar(tVarV,false)}</td>
+    <td>${fmtVar(tVarC,false)}</td>
+    <td>${tVarFC!==null?`<span class="${tVarFC>0?'var-up':'var-down'}">${tVarFC>0?'▲':'▼'} ${Math.abs(tVarFC).toFixed(1)}pp</span>`:'—'}</td>
+  </tr>`;
+
+  // Gráfico de barras agrupadas por mes
+  const ctx = document.getElementById('chart-explot-mensual');
+  if(!ctx) return;
+  if(CHART_EXPLOT_MES) CHART_EXPLOT_MES.destroy();
+  const labMes = mesesDisp.map(m=>MESES[m-1]);
+  CHART_EXPLOT_MES = new Chart(ctx.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:labMes,
+      datasets:[
+        {label:'Ventas 2025',data:dV25,backgroundColor:'#10b98133',borderColor:'#10b981',borderWidth:2,borderRadius:4},
+        {label:'Compras 2025',data:dC25,backgroundColor:C25+'99',borderColor:C25,borderWidth:2,borderRadius:4},
+        {label:'Ventas 2026',data:dV26,backgroundColor:'#8b5cf633',borderColor:'#8b5cf6',borderWidth:2,borderRadius:4},
+        {label:'Compras 2026',data:dC26,backgroundColor:C26+'99',borderColor:C26,borderWidth:2,borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},datalabels:{display:false}},
+      scales:{y:{ticks:{callback:v=>fmt(v)},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
 // RENDER ALL
 // ═══════════════════════════════════════════════════════════════════════
 function renderAll(){
@@ -1516,6 +1805,7 @@ fetch('data.json')
   .then(data=>{
     DATA=data;
     poblarFiltros();
+    poblarSelectorRestMensual();
     renderAll();
   })
   .catch(e=>{
