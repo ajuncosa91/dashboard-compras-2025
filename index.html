@@ -888,7 +888,7 @@ function renderKPIs(){
 
   const calc=(año)=>{
     const d=raw.filter(r=>r.AÑO===año);
-    const compras=d.reduce((s,r)=>s+r.COMPRAS,0);
+    const compras=d.reduce((s,r)=>s+r.SUBTOTAL,0);
     const ventas=deducVentas(d);
     const fc=ventas>0?compras/ventas*100:null;
     return{compras,ventas,fc};
@@ -1006,8 +1006,8 @@ function renderMensual(){
 
   const d25=[],d26=[];
   for(let m=1;m<=12;m++){
-    const v25=rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0);
-    const v26=rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0);
+    const v25=rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.SUBTOTAL,0);
+    const v26=rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.SUBTOTAL,0);
 
     if(f.año==='2025'){
       d25.push(v25); d26.push(null);
@@ -1057,9 +1057,9 @@ function renderFoodCostMensual(){
   for(let m=1;m<=12;m++){
     const r25=rawAll.filter(r=>r.AÑO===2025&&r.MES===m);
     const r26=rawAll.filter(r=>r.AÑO===2026&&r.MES===m);
-    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const c25=r25.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v25=deducVentasMes(rawAll.filter(r=>r.AÑO===2025),m);
-    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const c26=r26.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v26=deducVentasMes(rawAll.filter(r=>r.AÑO===2026),m);
 
     if(f.año==='2025'){
@@ -1111,8 +1111,8 @@ function renderRestaurantes(){
   const raw25=filtrarPorPeriodo(rawAll,{...periodo, modo: f.año==='2026'?'solo2026': (periodo.modo==='solo2025'?'solo2025':'comparativa')});
   const raw26=filtrarPorPeriodo(rawAll,{...periodo, modo: f.año==='2025'?'solo2025': (periodo.modo==='solo2026'?'solo2026':'comparativa')});
 
-  const d25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(periodo.modo==='solo2025'||!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
-  const d26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(periodo.modo==='solo2026'||!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const d25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(periodo.modo==='solo2025'||!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.SUBTOTAL,0));
+  const d26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(periodo.modo==='solo2026'||!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.SUBTOTAL,0));
 
   // Altura dinámica según número de restaurantes
   const h=Math.max(400, todosRests.length*55);
@@ -1160,12 +1160,12 @@ function renderVentasCompras(){
     return Object.values(vm).reduce((s,v)=>s+v,0);
   };
 
-  const c25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const c25=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(x.MES))).reduce((s,x)=>s+x.SUBTOTAL,0));
   const v25=todosRests.map(r=>{
     const rows=rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(x.MES)));
     return deducVentasRest(rows,r);
   });
-  const c26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.COMPRAS,0));
+  const c26=todosRests.map(r=>rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(x.MES))).reduce((s,x)=>s+x.SUBTOTAL,0));
   const v26=todosRests.map(r=>{
     const rows=rawAll.filter(x=>x.RESTAURANTE===r&&x.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(x.MES)));
     return deducVentasRest(rows,r);
@@ -1226,9 +1226,9 @@ function renderTablaFoodCost(){
   todosRests.forEach(rest=>{
     const r25=rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
     const r26=rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
-    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const c25=r25.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v25=deducVentasR(r25);
-    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const c26=r26.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v26=deducVentasR(r26);
     const fc25=v25>0?c25/v25*100:null;
     const fc26=v26>0?c26/v26*100:null;
@@ -1354,7 +1354,7 @@ function renderPareto(){
   const raw=filtrarPorPeriodo(rawAll,periodo);
 
   const provMap={};
-  raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.COMPRAS;});
+  raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.SUBTOTAL;});
   const sorted=Object.entries(provMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   const total=sorted.reduce((s,x)=>s+x[1],0);
   let acum=0;
@@ -1391,8 +1391,8 @@ function renderFamilias(){
   const periodo=getPeriodoComparable(rawAll);
   const famMap25={},famMap26={};
   rawAll.forEach(r=>{
-    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES))){famMap25[r.FAMILIA]=(famMap25[r.FAMILIA]||0)+r.COMPRAS;}
-    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES))){famMap26[r.FAMILIA]=(famMap26[r.FAMILIA]||0)+r.COMPRAS;}
+    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES))){famMap25[r.FAMILIA]=(famMap25[r.FAMILIA]||0)+r.SUBTOTAL;}
+    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES))){famMap26[r.FAMILIA]=(famMap26[r.FAMILIA]||0)+r.SUBTOTAL;}
   });
   const fams=[...new Set([...Object.keys(famMap25),...Object.keys(famMap26)])].sort((a,b)=>(famMap25[b]||0)+(famMap26[b]||0)-(famMap25[a]||0)-(famMap26[a]||0));
   const d25=fams.map(f=>famMap25[f]||0);
@@ -1426,8 +1426,8 @@ function renderTipos(){
   const tipoMap={};
   rawAll.forEach(r=>{
     if(!tipoMap[r.TIPO])tipoMap[r.TIPO]={c25:0,c26:0};
-    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES)))tipoMap[r.TIPO].c25+=r.COMPRAS;
-    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES)))tipoMap[r.TIPO].c26+=r.COMPRAS;
+    if(r.AÑO===2025&&(!periodo.meses25||periodo.meses25.includes(r.MES)))tipoMap[r.TIPO].c25+=r.SUBTOTAL;
+    if(r.AÑO===2026&&(!periodo.meses26||periodo.meses26.includes(r.MES)))tipoMap[r.TIPO].c26+=r.SUBTOTAL;
   });
   const sorted=Object.entries(tipoMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26)).slice(0,20);
 
@@ -1458,7 +1458,7 @@ function renderTipos(){
 function initTabsProveedores(){
   const raw=filtrarRaw();
   const provMap={};
-  raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.COMPRAS;});
+  raw.forEach(r=>{provMap[r.PROVEEDOR]=(provMap[r.PROVEEDOR]||0)+r.SUBTOTAL;});
   const top6=Object.entries(provMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>x[0]);
 
   const tabsEl=document.getElementById('tabs-prov');
@@ -1482,8 +1482,8 @@ function renderProvEvol(){
   const f=getFiltros();
   const d25=[],d26=[];
   for(let m=1;m<=12;m++){
-    d25.push(rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
-    d26.push(rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.COMPRAS,0));
+    d25.push(rawAll.filter(r=>r.AÑO===2025&&r.MES===m).reduce((s,r)=>s+r.SUBTOTAL,0));
+    d26.push(rawAll.filter(r=>r.AÑO===2026&&r.MES===m).reduce((s,r)=>s+r.SUBTOTAL,0));
   }
 
   const ctx=document.getElementById('chart-prov-evol').getContext('2d');
@@ -1516,8 +1516,8 @@ function renderTablaProveedores(){
   const provMap={};
   rawAll.forEach(r=>{
     if(!provMap[r.PROVEEDOR])provMap[r.PROVEEDOR]={c25:0,c26:0,rests:new Set()};
-    if(r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)))provMap[r.PROVEEDOR].c25+=r.COMPRAS;
-    if(r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)))provMap[r.PROVEEDOR].c26+=r.COMPRAS;
+    if(r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)))provMap[r.PROVEEDOR].c25+=r.SUBTOTAL;
+    if(r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)))provMap[r.PROVEEDOR].c26+=r.SUBTOTAL;
     provMap[r.PROVEEDOR].rests.add(r.RESTAURANTE);
   });
 
@@ -1564,8 +1564,8 @@ function renderTablaProductos(){
       c25:0, c26:0, qty25:0, qty26:0};
     const inPeriod25 = r.AÑO===2025 && (f.año!=='2026') && (!periodo.meses25||periodo.meses25.includes(r.MES));
     const inPeriod26 = r.AÑO===2026 && (f.año!=='2025') && (!periodo.meses26||periodo.meses26.includes(r.MES));
-    if(inPeriod25){ prodMap[key].c25 += r.COMPRAS; prodMap[key].qty25 += r.CANTIDAD||0; }
-    if(inPeriod26){ prodMap[key].c26 += r.COMPRAS; prodMap[key].qty26 += r.CANTIDAD||0; }
+    if(inPeriod25){ prodMap[key].c25 += r.SUBTOTAL; prodMap[key].qty25 += r.CANTIDAD||0; }
+    if(inPeriod26){ prodMap[key].c26 += r.SUBTOTAL; prodMap[key].qty26 += r.CANTIDAD||0; }
   });
 
   let prods = Object.values(prodMap);
@@ -1639,8 +1639,8 @@ function renderProdDetail(prodNombre, innerId){
     if(!provMap[prov]) provMap[prov] = {c25:0,c26:0,qty25:0,qty26:0};
     const inP25 = r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES));
     const inP26 = r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES));
-    if(inP25){provMap[prov].c25+=r.COMPRAS;provMap[prov].qty25+=r.CANTIDAD||0;}
-    if(inP26){provMap[prov].c26+=r.COMPRAS;provMap[prov].qty26+=r.CANTIDAD||0;}
+    if(inP25){provMap[prov].c25+=r.SUBTOTAL;provMap[prov].qty25+=r.CANTIDAD||0;}
+    if(inP26){provMap[prov].c26+=r.SUBTOTAL;provMap[prov].qty26+=r.CANTIDAD||0;}
   });
 
   const provSorted = Object.entries(provMap).sort((a,b)=>(b[1].c25+b[1].c26)-(a[1].c25+a[1].c26));
@@ -1659,8 +1659,8 @@ function renderProdDetail(prodNombre, innerId){
   // Agrupar por mes para evolución de precio
   const mesMap25={}, mesMap26={};
   filas.forEach(r=>{
-    if(r.AÑO===2025&&r.CANTIDAD>0){if(!mesMap25[r.MES])mesMap25[r.MES]={c:0,q:0};mesMap25[r.MES].c+=r.COMPRAS;mesMap25[r.MES].q+=r.CANTIDAD;}
-    if(r.AÑO===2026&&r.CANTIDAD>0){if(!mesMap26[r.MES])mesMap26[r.MES]={c:0,q:0};mesMap26[r.MES].c+=r.COMPRAS;mesMap26[r.MES].q+=r.CANTIDAD;}
+    if(r.AÑO===2025&&r.CANTIDAD>0){if(!mesMap25[r.MES])mesMap25[r.MES]={c:0,q:0};mesMap25[r.MES].c+=r.SUBTOTAL;mesMap25[r.MES].q+=r.CANTIDAD;}
+    if(r.AÑO===2026&&r.CANTIDAD>0){if(!mesMap26[r.MES])mesMap26[r.MES]={c:0,q:0};mesMap26[r.MES].c+=r.SUBTOTAL;mesMap26[r.MES].q+=r.CANTIDAD;}
   });
   const pm25arr=MESES.map((_,i)=>mesMap25[i+1]&&mesMap25[i+1].q>0?mesMap25[i+1].c/mesMap25[i+1].q:null);
   const pm26arr=MESES.map((_,i)=>mesMap26[i+1]&&mesMap26[i+1].q>0?mesMap26[i+1].c/mesMap26[i+1].q:null);
@@ -1734,9 +1734,9 @@ function renderCuentaExplotacion(){
   todosRests.forEach(rest => {
     const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
     const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
-    const c25 = r25.reduce((s,r)=>s+r.COMPRAS, 0);
+    const c25 = r25.reduce((s,r)=>s+r.SUBTOTAL, 0);
     const v25 = deducVentasR(r25);
-    const c26 = r26.reduce((s,r)=>s+r.COMPRAS, 0);
+    const c26 = r26.reduce((s,r)=>s+r.SUBTOTAL, 0);
     const v26 = deducVentasR(r26);
     const m25 = v25 - c25;
     const m26 = v26 - c26;
@@ -1812,9 +1812,9 @@ function renderGraficoExplotacion(){
   todosRests.forEach(rest => {
     const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&(f.año!=='2026')&&(!periodo.meses25||periodo.meses25.includes(r.MES)));
     const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&(f.año!=='2025')&&(!periodo.meses26||periodo.meses26.includes(r.MES)));
-    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const c25=r25.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v25=deducVentasR(r25);
-    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const c26=r26.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v26=deducVentasR(r26);
     if(c25===0&&v25===0&&c26===0&&v26===0) return;
     labels.push(rest.replace('RESTAURANTE ','').replace('COCINA CENTRAL ','CC '));
@@ -1893,9 +1893,9 @@ function renderExplotMensual(){
   mesesDisp.forEach(mes=>{
     const r25 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2025&&r.MES===mes);
     const r26 = rawAll.filter(r=>r.RESTAURANTE===rest&&r.AÑO===2026&&r.MES===mes);
-    const c25=r25.reduce((s,r)=>s+r.COMPRAS,0);
+    const c25=r25.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v25=deducVentas(r25);
-    const c26=r26.reduce((s,r)=>s+r.COMPRAS,0);
+    const c26=r26.reduce((s,r)=>s+r.SUBTOTAL,0);
     const v26=deducVentas(r26);
     const m25=v25-c25, m26=v26-c26;
     const fc25=v25>0?c25/v25*100:null;
