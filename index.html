@@ -156,6 +156,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 .explot-mes-table tr.total-row{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
 .explot-mes-table tr:hover td{background:#f0f9ff}
 .explot-chart-mes{position:relative;height:220px;margin-top:14px}
+/* COSTE REAL */
+.cr-nota{font-size:10px;color:var(--texto2);font-style:italic;margin-left:4px}
+.cr-nota-warn{font-size:10px;color:#92400e;font-style:italic;margin-left:4px}
+.cr-nota-prod{font-size:10px;color:#1e40af;font-style:italic;margin-left:4px}
+.cr-total-row{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
+.cr-total-row td{font-weight:700}
 </style>
 </head>
 <body>
@@ -263,6 +269,31 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
     </div>
     <button class="btn-reset" onclick="aplicarUmbrales()">✓ Aplicar</button>
   </div>
+  <!-- SEMÁFOROS COSTE REAL -->
+  <div class="semaforo-config" style="margin-top:4px">
+    <span>📦 Umbrales Coste Real:</span>
+    <div class="semaforo-input-group">
+      <span class="dot dot-verde"></span>
+      <label>Verde &lt;</label>
+      <input type="number" id="cr-umbral-verde" value="30" min="1" max="150" step="0.5">
+      <label>%</label>
+    </div>
+    <div class="semaforo-input-group">
+      <span class="dot dot-amarillo"></span>
+      <label>Amarillo</label>
+      <input type="number" id="cr-umbral-amarillo-min" value="30" min="1" max="150" step="0.5">
+      <label>–</label>
+      <input type="number" id="cr-umbral-amarillo-max" value="38" min="1" max="150" step="0.5">
+      <label>%</label>
+    </div>
+    <div class="semaforo-input-group">
+      <span class="dot dot-rojo"></span>
+      <label>Rojo &gt;</label>
+      <input type="number" id="cr-umbral-rojo" value="38" min="1" max="150" step="0.5">
+      <label>%</label>
+    </div>
+    <button class="btn-reset" onclick="aplicarUmbralesCR()">✓ Aplicar</button>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -353,6 +384,33 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
           </tr>
         </thead>
         <tbody id="tbody-foodcost"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COSTE REAL POR RESTAURANTE -->
+  <div class="section" id="seccion-coste-real">
+    <div class="section-header">
+      <div>
+        <div class="section-title"><span class="icon">📦</span>Coste Real por Restaurante</div>
+        <div class="section-subtitle">Fórmula: (Inv.Inicial + Compras − Inv.Final) / Ventas × 100 · Calculado desde el primer mes con inventario disponible · Umbrales configurables arriba</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="fc-table" id="tabla-coste-real">
+        <thead>
+          <tr>
+            <th>Restaurante</th>
+            <th>Mes</th>
+            <th>Inv. Inicial</th>
+            <th>Compras</th>
+            <th>Inv. Final</th>
+            <th>Consumo</th>
+            <th>Ventas</th>
+            <th>Coste Real %</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-coste-real"></tbody>
       </table>
     </div>
   </div>
@@ -536,6 +594,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:var(--
 let DATA = null;
 let CHARTS = {};
 let UMBRALES = {verde:30, amarillo_max:38};
+let UMBRALES_CR = {verde:30, amarillo_max:38};
 let PROV_ACTIVO = null;
 let MS_SELECTED = {restaurante: new Set(), proveedor: new Set()};
 let MS_ALL = {restaurante: true, proveedor: true};
@@ -554,6 +613,14 @@ function semaforo(fc){
   if(fc<u.verde)return`<span class="fc-badge fc-verde">🟢 ${fc.toFixed(1)}%</span>`;
   if(fc<=u.amarillo_max)return`<span class="fc-badge fc-amarillo">🟡 ${fc.toFixed(1)}%</span>`;
   return`<span class="fc-badge fc-rojo">🔴 ${fc.toFixed(1)}%</span>`;
+}
+function semaforoCR(cr){
+  if(cr===null||cr===undefined||cr==='')return'<span class="fc-badge fc-neutro">—</span>';
+  if(typeof cr!=='number'||isNaN(cr))return'<span class="fc-badge fc-neutro">—</span>';
+  const u=UMBRALES_CR;
+  if(cr<u.verde)return`<span class="fc-badge fc-verde">🟢 ${cr.toFixed(1)}%</span>`;
+  if(cr<=u.amarillo_max)return`<span class="fc-badge fc-amarillo">🟡 ${cr.toFixed(1)}%</span>`;
+  return`<span class="fc-badge fc-rojo">🔴 ${cr.toFixed(1)}%</span>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -752,6 +819,20 @@ document.getElementById('umbral-verde').addEventListener('change',()=>{
 document.getElementById('umbral-rojo').addEventListener('change',()=>{
   document.getElementById('umbral-amarillo-max').value=document.getElementById('umbral-rojo').value;
 });
+function aplicarUmbralesCR(){
+  UMBRALES_CR.verde=parseFloat(document.getElementById('cr-umbral-verde').value)||30;
+  UMBRALES_CR.amarillo_max=parseFloat(document.getElementById('cr-umbral-rojo').value)||38;
+  document.getElementById('cr-umbral-amarillo-min').value=UMBRALES_CR.verde;
+  document.getElementById('cr-umbral-amarillo-max').value=UMBRALES_CR.amarillo_max;
+  renderTablaCosteReal();
+  renderKPIs();
+}
+document.getElementById('cr-umbral-verde').addEventListener('change',()=>{
+  document.getElementById('cr-umbral-amarillo-min').value=document.getElementById('cr-umbral-verde').value;
+});
+document.getElementById('cr-umbral-rojo').addEventListener('change',()=>{
+  document.getElementById('cr-umbral-amarillo-max').value=document.getElementById('cr-umbral-rojo').value;
+});
 
 // ═══════════════════════════════════════════════════════════════════════
 // AVISO Y BADGE PERÍODO
@@ -867,6 +948,49 @@ function renderKPIs(){
       <div class="kpi-val">${k26.fc?k26.fc.toFixed(1)+'%':'—'}</div>
       <div class="kpi-sub">Período comparable</div>
       ${varFC!==null?`<div class="kpi-var ${varFC>0?'up':'down'}">${varFC>0?'▲':'▼'} ${Math.abs(varFC).toFixed(1)}pp vs 2025</div>`:''}
+    </div>`;
+  }
+  // KPI COSTE REAL DEL GRUPO
+  const crClass=(cr)=>{if(cr===null||cr===undefined||isNaN(cr))return'';if(cr<UMBRALES_CR.verde)return'verde';if(cr<=UMBRALES_CR.amarillo_max)return'amarillo';return'rojo';};
+  const crGrupo=DATA.coste_real.filter(r=>r.RESTAURANTE==='GRUPO');
+  const f_año=f.año?parseInt(f.año):null;
+  const f_mes=f.mes?parseInt(f.mes):null;
+  const crFiltrado=crGrupo.filter(r=>{
+    if(f_año&&r.AÑO!==f_año)return false;
+    if(f_mes&&r.MES!==f_mes)return false;
+    return true;
+  });
+  // Calcular coste real del grupo para el período filtrado
+  let crGrupoVal=null;
+  if(crFiltrado.length>0){
+    const totConsGrupo=crFiltrado.reduce((s,r)=>s+(r.CONSUMO||0),0);
+    const totVentGrupo=crFiltrado.reduce((s,r)=>s+(r.VENTAS||0),0);
+    crGrupoVal=totVentGrupo>0?totConsGrupo/totVentGrupo*100:null;
+  }
+  // KPI coste real según filtro de año
+  const crGrupo25=DATA.coste_real.filter(r=>r.RESTAURANTE==='GRUPO'&&r.AÑO===2025&&(f_mes===null||r.MES===f_mes));
+  const crGrupo26=DATA.coste_real.filter(r=>r.RESTAURANTE==='GRUPO'&&r.AÑO===2026&&(f_mes===null||r.MES===f_mes));
+  const calcCRGrupo=(rows)=>{
+    const totC=rows.reduce((s,r)=>s+(r.CONSUMO||0),0);
+    const totV=rows.reduce((s,r)=>s+(r.VENTAS||0),0);
+    return totV>0?totC/totV*100:null;
+  };
+  const cr25=calcCRGrupo(crGrupo25);
+  const cr26=calcCRGrupo(crGrupo26);
+  const varCR=cr25&&cr26?cr26-cr25:null;
+  if(f.año!=='2026'&&cr25!==null){
+    html+=`<div class="kpi-card ${crClass(cr25)}">
+      <div class="kpi-label">Coste Real 2025</div>
+      <div class="kpi-val">${cr25.toFixed(1)}%</div>
+      <div class="kpi-sub">(Inv.Ini+Compras−Inv.Fin)/Ventas</div>
+    </div>`;
+  }
+  if(f.año!=='2025'&&cr26!==null){
+    html+=`<div class="kpi-card ${crClass(cr26)}">
+      <div class="kpi-label">Coste Real 2026</div>
+      <div class="kpi-val">${cr26.toFixed(1)}%</div>
+      <div class="kpi-sub">Período disponible</div>
+      ${varCR!==null?`<div class="kpi-var ${varCR>0?'up':'down'}">${varCR>0?'▲':'▼'} ${Math.abs(varCR).toFixed(1)}pp vs 2025</div>`:''}
     </div>`;
   }
   document.getElementById('kpis-grid').innerHTML=html;
@@ -1124,6 +1248,101 @@ function renderTablaFoodCost(){
     </tr>`;
   });
   document.getElementById('tbody-foodcost').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TABLA COSTE REAL POR RESTAURANTE
+// ═══════════════════════════════════════════════════════════════════════
+function renderTablaCosteReal(){
+  if(!DATA||!DATA.coste_real)return;
+  const f=getFiltros();
+  const f_año=f.año?parseInt(f.año):null;
+  const f_mes=f.mes?parseInt(f.mes):null;
+  const rests_sel=MS_ALL.restaurante?null:[...MS_SELECTED.restaurante];
+  // Obtener restaurantes únicos (sin GRUPO) en el orden correcto
+  const todosRests=[...new Set(DATA.coste_real.filter(r=>r.RESTAURANTE!=='GRUPO').map(r=>r.RESTAURANTE))].sort();
+  let html='';
+  todosRests.forEach(rest=>{
+    // Filtrar por restaurante seleccionado
+    if(rests_sel&&!rests_sel.includes(rest))return;
+    // Filtrar filas de este restaurante
+    const filas=DATA.coste_real.filter(r=>{
+      if(r.RESTAURANTE!==rest)return false;
+      if(f_año&&r.AÑO!==f_año)return false;
+      if(f_mes&&r.MES!==f_mes)return false;
+      return true;
+    });
+    if(filas.length===0)return;
+    // Notas especiales
+    const esBarcino=rest.includes('BARCINO');
+    const esCocina=rest.includes('COCINA');
+    const notaRest=esCocina?'<span class="cr-nota-prod">ⓘ Centro de producción interna</span>':'';
+    // Calcular totales del restaurante para el período filtrado
+    const totInvIni=filas.reduce((s,r)=>s+(r.INV_INICIAL||0),0);
+    const totCompras=filas.reduce((s,r)=>s+(r.COMPRAS||0),0);
+    const totInvFin=filas.reduce((s,r)=>s+(r.INV_FINAL||0),0);
+    const totConsumo=filas.reduce((s,r)=>s+(r.CONSUMO||0),0);
+    const totVentas=filas.reduce((s,r)=>s+(r.VENTAS||0),0);
+    const totCR=totVentas>0?totConsumo/totVentas*100:null;
+    // Filas de detalle mensual
+    filas.forEach(r=>{
+      const cr=r.COSTE_REAL_PCT;
+      const crValido=(cr!==''&&cr!==null&&cr!==undefined&&!isNaN(parseFloat(cr)));
+      const crNum=crValido?parseFloat(cr):null;
+      const sinVentas=r.VENTAS===0||r.VENTAS==='';
+      const notaMes=esBarcino&&sinVentas?'<span class="cr-nota-warn">⚠️ Ventas pendientes de regularizar</span>':'';
+      html+=`<tr>
+        <td><strong>${r.RESTAURANTE}</strong>${notaRest}</td>
+        <td>${r.AÑO} ${r.MES_NOM}</td>
+        <td style="text-align:right">${fmt(r.INV_INICIAL)}</td>
+        <td style="text-align:right">${fmt(r.COMPRAS)}</td>
+        <td style="text-align:right">${fmt(r.INV_FINAL)}</td>
+        <td style="text-align:right;color:${(r.CONSUMO||0)<0?'var(--rojo)':'inherit'}">${fmt(r.CONSUMO)}</td>
+        <td style="text-align:right">${sinVentas?'<span class="cr-nota-warn">0 €'+notaMes+'</span>':fmt(r.VENTAS)}</td>
+        <td>${crNum!==null?semaforoCR(crNum):'<span class="fc-badge fc-neutro">—</span>'}</td>
+      </tr>`;
+    });
+    // Fila de total del restaurante (solo si hay más de 1 mes)
+    if(filas.length>1){
+      html+=`<tr class="cr-total-row">
+        <td><strong>${rest} — TOTAL</strong></td>
+        <td></td>
+        <td style="text-align:right">${fmt(totInvIni)}</td>
+        <td style="text-align:right">${fmt(totCompras)}</td>
+        <td style="text-align:right">${fmt(totInvFin)}</td>
+        <td style="text-align:right;color:${totConsumo<0?'var(--rojo)':'inherit'}">${fmt(totConsumo)}</td>
+        <td style="text-align:right">${fmt(totVentas)}</td>
+        <td>${totCR!==null?semaforoCR(totCR):'<span class="fc-badge fc-neutro">—</span>'}</td>
+      </tr>`;
+    }
+  });
+  // Fila GRUPO
+  const filasGrupo=DATA.coste_real.filter(r=>{
+    if(r.RESTAURANTE!=='GRUPO')return false;
+    if(f_año&&r.AÑO!==f_año)return false;
+    if(f_mes&&r.MES!==f_mes)return false;
+    return true;
+  });
+  if(filasGrupo.length>0){
+    const gInvIni=filasGrupo.reduce((s,r)=>s+(r.INV_INICIAL||0),0);
+    const gCompras=filasGrupo.reduce((s,r)=>s+(r.COMPRAS||0),0);
+    const gInvFin=filasGrupo.reduce((s,r)=>s+(r.INV_FINAL||0),0);
+    const gConsumo=filasGrupo.reduce((s,r)=>s+(r.CONSUMO||0),0);
+    const gVentas=filasGrupo.reduce((s,r)=>s+(r.VENTAS||0),0);
+    const gCR=gVentas>0?gConsumo/gVentas*100:null;
+    html+=`<tr style="background:#dbeafe;font-weight:700;border-top:3px solid var(--azul2)">
+      <td><strong>🏢 GRUPO TOTAL</strong></td>
+      <td></td>
+      <td style="text-align:right">${fmt(gInvIni)}</td>
+      <td style="text-align:right">${fmt(gCompras)}</td>
+      <td style="text-align:right">${fmt(gInvFin)}</td>
+      <td style="text-align:right">${fmt(gConsumo)}</td>
+      <td style="text-align:right">${fmt(gVentas)}</td>
+      <td>${gCR!==null?semaforoCR(gCR):'<span class="fc-badge fc-neutro">—</span>'}</td>
+    </tr>`;
+  }
+  if(!html)html='<tr><td colspan="8" style="text-align:center;color:var(--texto2);padding:20px">No hay datos de coste real para el período seleccionado</td></tr>';
+  document.getElementById('tbody-coste-real').innerHTML=html;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1763,6 +1982,7 @@ function renderAll(){
   renderRestaurantes();
   renderVentasCompras();
   renderTablaFoodCost();
+  renderTablaCosteReal();
   renderCuentaExplotacion();
   renderPareto();
   renderFamilias();
