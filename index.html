@@ -659,7 +659,7 @@ function toggleAllMS(key){
   document.querySelectorAll(`#items-${key} input[type=checkbox]`).forEach(c=>{c.checked=checked;});
   if(checked){
     MS_ALL[key]=true;
-    MS_SELECTED[key]=new Set([...DATA.filtros[key+'s']||DATA.filtros[key==='restaurante'?'restaurantes':'proveedores']]);
+    MS_SELECTED[key]=new Set([...DATA.meta[key+'s']||DATA.meta[key==='restaurante'?'restaurantes':'proveedores']]);
   } else {
     MS_ALL[key]=false;
     MS_SELECTED[key]=new Set();
@@ -1996,7 +1996,7 @@ function renderAll(){
 // INICIALIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════
 function poblarFiltros(){
-  const f=DATA.filtros;
+  const f=DATA.meta;
 
   // Multiselects
   buildMS('restaurante', f.restaurantes);
